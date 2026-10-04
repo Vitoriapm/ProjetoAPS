@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-10-04T01:46:13.663725+00:00",
+  "mode": "full",
+  "project": "ecopulse-validation",
+  "health": {
+    "status": "ok",
+    "mode": "full",
+    "services": {
+      "database": "ok",
+      "broker": "ok",
+      "cache": "ok"
+    },
+    "outbox_pending": 0,
+    "configuration": {
+      "shards": 4,
+      "fcm_configured": false,
+      "routes_configured": false,
+      "heat_source": "fixture_simulada"
+    },
+    "notice": "Infraestrutura real; valida\u00e7\u00e3o requer evid\u00eancias de execu\u00e7\u00e3o"
+  },
+  "two_websocket_notifications": [
+    {
+      "type": "incidente.criado",
+      "id": "47ac1f26-50f8-42d2-a5bb-da6ad2439ffd",
+      "version": 1
+    },
+    {
+      "type": "incidente.criado",
+      "id": "47ac1f26-50f8-42d2-a5bb-da6ad2439ffd",
+      "version": 1
+    }
+  ],
+  "pipeline_seconds": 0.641,
+  "duplicate_post_status": 200,
+  "report_id": "dbd1b3be-9dda-4527-8c72-87321eb8e472",
+  "initial_incident": {
+    "id": "47ac1f26-50f8-42d2-a5bb-da6ad2439ffd",
+    "version": 1,
+    "report_count": 1
+  },
+  "collaborative_incident": {
+    "id": "47ac1f26-50f8-42d2-a5bb-da6ad2439ffd",
+    "version": 3,
+    "report_count": 3,
+    "estado": "colaborativo"
+  },
+  "completed_at": "2026-10-04T01:46:15.699980+00:00"
+}

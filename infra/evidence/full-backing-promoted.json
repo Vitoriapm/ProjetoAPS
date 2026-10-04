@@ -1,0 +1,141 @@
+{
+  "mode": "full",
+  "postgis_version": "3.5 USE_GEOS=1 USE_PROJ=1 USE_STATS=1",
+  "reports": 134,
+  "outbox_pending": 0,
+  "processed_events": 271,
+  "replication": [],
+  "redis_slots_covered": 16384,
+  "redis_roles": {
+    "primary": 3,
+    "replica": 3
+  },
+  "cache_convergence": [
+    {
+      "id": "c3df0f72-1161-4605-8f57-05f025d02f2f",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "7c433a77-98c8-41e4-87af-17a0eef9355d",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "47ac1f26-50f8-42d2-a5bb-da6ad2439ffd",
+      "db_version": 3,
+      "cache_version": 3,
+      "equal": true
+    },
+    {
+      "id": "fd12efe7-09ba-4d59-84f6-c82002bf4bed",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "9cdc12c9-3f27-4bc8-bd2a-49b01a016794",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "20c339c7-6700-427a-a3cd-d406b23e4393",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "83c25a8e-272e-4495-83bb-26e6ab4c5f98",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "b01254fb-e4e8-412e-9084-2cc35bd44112",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "5f917025-5afa-490e-9a8f-62010159e50a",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "7a7360c3-1ef3-438d-8993-74f327e3ae28",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "8e70cb82-eb89-494a-a13f-a1e666cf70c2",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "72b79802-e09f-46aa-97bc-80d0f0a18587",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "2f265e90-50ff-4023-ad12-25f3e83e3fbc",
+      "db_version": 1,
+      "cache_version": 1,
+      "equal": true
+    },
+    {
+      "id": "09814cc6-bd31-4a23-87f2-72d3d140919d",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "44b90102-be0c-4ba9-a41a-a331f2831367",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "b8a0c605-87e4-4dc0-8dde-7def4b350c1b",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "eb87fd04-861a-4a4d-a04f-ac6b46fc3265",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "35c09f44-01d7-4e98-aa62-c65207598fbf",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "1f400d63-3aad-4e64-9c1c-95d5cc1fccde",
+      "db_version": 10,
+      "cache_version": 10,
+      "equal": true
+    },
+    {
+      "id": "1626a527-b638-4967-b832-730411063fd6",
+      "db_version": 2,
+      "cache_version": 2,
+      "equal": true
+    },
+    {
+      "id": "cf1b885f-a6ed-487a-b0a8-9942a41a1899",
+      "db_version": 3,
+      "cache_version": 3,
+      "equal": true
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+# Apply only AFTER scripts/failover_postgres.ps1 isolates the old primary.
+# Requires Compose >=2.24.4 for !override (dependency lists must replace old DB).
+x-promoted-dependencies: &promoted-dependencies
+  db-replica: {condition: service_healthy}
+  rabbit1: {condition: service_healthy}
+  rabbit2: {condition: service_healthy}
+  rabbit3: {condition: service_healthy}
+  rabbit-init: {condition: service_completed_successfully}
+  redis-init: {condition: service_completed_successfully}
+
+services:
+  db:
+    profiles: [primary-fenced]
+  db-replica:
+    depends_on: !override {}
+  api:
+    environment:
+      DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db-replica:5432/ecopulse
+    depends_on: !override
+      <<: *promoted-dependencies
+  api2:
+    environment:
+      DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db-replica:5432/ecopulse
+    depends_on: !override
+      <<: *promoted-dependencies
+  worker:
+    environment:
+      DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db-replica:5432/ecopulse
+    depends_on: !override
+      <<: *promoted-dependencies
+  worker2:
+    environment:
+      DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db-replica:5432/ecopulse
+    depends_on: !override
+      <<: *promoted-dependencies
+  alerts:
+    environment:
+      DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db-replica:5432/ecopulse
+    depends_on: !override
+      <<: *promoted-dependencies

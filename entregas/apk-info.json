@@ -1,0 +1,11 @@
+{
+  "application": "EcoPulse",
+  "platform": "Android",
+  "build": "debug, assinatura de desenvolvimento",
+  "built_at_local": "2026-10-03 23:04 America/Sao_Paulo",
+  "size_bytes": 201527643,
+  "sha256": "4136307f519d0595fb1067b97e53fa9119f750cdf76ae15b22f0334838a05b75",
+  "default_api_url": "http://10.0.2.2:8000",
+  "physical_device_setup": "Conexão e informações: usar IP local do computador na mesma rede",
+  "firebase_enabled": false
+}

@@ -1,0 +1,22 @@
+{
+  "validated_at": "2026-10-03T23:07:10.687156-03:00",
+  "source_proposal": "Proposta_APS_DSD_EcoPulse.docx",
+  "backend_tests_passed": 60,
+  "flutter_tests_passed": 22,
+  "flutter_analysis": "No issues found",
+  "android_debug_build": "passed",
+  "web_build": "passed",
+  "sqlite_android_integration": "previous run passed, emulator API 35",
+  "distributed_cluster": "full flow, node failures, retries/DLQ/replay and planned PG promotion passed",
+  "live_aqi_frontend": "passed",
+  "firebase_real_delivery": "not tested, configuration absent",
+  "ors_real_route": "not tested, key absent",
+  "ios_build": "not tested, Mac/Xcode/iPhone absent",
+  "real_heat_layer": "not implemented",
+  "redis_environmental_cache": "not implemented",
+  "formal_aps_report": "not produced",
+  "load_scope": "60 fictitious reports, concurrency 4; not production capacity",
+  "validation_cluster_stopped_volumes_preserved": true,
+  "demo_api_port": 8000,
+  "web_preview_port": 5173
+}

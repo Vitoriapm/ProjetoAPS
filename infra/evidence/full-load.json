@@ -1,0 +1,20 @@
+{
+  "project": "ecopulse-validation",
+  "reports": 60,
+  "concurrency": 4,
+  "started_at": "2026-10-04T01:53:33.433732+00:00",
+  "is_demo": true,
+  "entry_seconds": 1.328,
+  "entry_rate_per_second": 45.18,
+  "p50_ms": 32.0,
+  "p95_ms": 297.0,
+  "status_codes": {
+    "201": 60
+  },
+  "database_processing_and_outbox_convergence_seconds": 2.469,
+  "outbox_pending": 0,
+  "incident_groups": 6,
+  "limitation": "Carga pequena local; n\u00e3o demonstra capacidade de produ\u00e7\u00e3o ou SLA",
+  "cache_versions_verified_after_seconds": 3.86,
+  "cache_versions_equal": true
+}

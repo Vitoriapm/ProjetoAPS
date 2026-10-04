@@ -1,0 +1,27 @@
+{
+  "project": "ecopulse-validation",
+  "started_at": "2026-10-04T01:52:57.424058+00:00",
+  "fcm_configured": false,
+  "notice": "Teste de retry pela indisponibilidade expl\u00edcita do FCM; n\u00e3o comprova envio push",
+  "invalid_json": {
+    "message_id": "09b9207d-4731-475a-a5ee-827ccd133357",
+    "retry_count": 1,
+    "error_class": "JSONDecodeError",
+    "original_queue": "ecopulse.risk.0",
+    "persistent": true,
+    "retained_in_dlq": true
+  },
+  "transient_fcm_unavailable": {
+    "message_id": "5866d162-dca1-41fb-8a29-265ec292619b",
+    "retry_count": 4,
+    "error_class": "RuntimeError",
+    "original_queue": "ecopulse.alerts",
+    "persistent": true,
+    "retained_in_dlq": true,
+    "elapsed_seconds": 22.657
+  },
+  "provider_delivery_statuses": [
+    "pending"
+  ],
+  "completed_at": "2026-10-04T01:53:20.814062+00:00"
+}

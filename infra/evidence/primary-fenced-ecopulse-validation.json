@@ -1,0 +1,6 @@
+{
+  "notice": "Não executar start_cluster.ps1 sobre este projeto; primário antigo exige reconstrução controlada.",
+  "old_primary_fenced": true,
+  "target_lsn": "0/5B1A4D0",
+  "fenced_at": "2026-10-04T01:54:52.9836464Z"
+}

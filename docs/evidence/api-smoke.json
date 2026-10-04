@@ -1,0 +1,17 @@
+{
+  "executed_at": "2026-10-04T02:12:03.796024+00:00",
+  "mode": "demo",
+  "checks": [
+    "health",
+    "sessão",
+    "POST 201",
+    "replay 200",
+    "conflito 409",
+    "WebSocket subscribe/evento/pong",
+    "GeoJSON",
+    "AQI/calor",
+    "503 correto sem chave"
+  ],
+  "report_is_demo": true,
+  "distributed_cluster_validated": false
+}

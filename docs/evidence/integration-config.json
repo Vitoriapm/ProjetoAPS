@@ -1,0 +1,10 @@
+{
+  "android_google_services_file_exists": false,
+  "environment_source_is_fixtures": false,
+  "environment_source_is_open_meteo": true,
+  "fcm_credentials_file_exists_on_host": false,
+  "fcm_credentials_path_configured": false,
+  "ios_google_service_plist_exists": false,
+  "ors_api_key_configured": false,
+  "project_env_file_exists": true
+}

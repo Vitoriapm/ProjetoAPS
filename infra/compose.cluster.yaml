@@ -1,0 +1,167 @@
+x-cluster-environment: &cluster-environment
+  ECOPULSE_MODE: full
+  DATABASE_URL: postgresql+psycopg://ecopulse:${POSTGRES_PASSWORD:?Gere o .env local}@db:5432/ecopulse
+  AMQP_URLS: amqp://ecopulse:${RABBIT_PASSWORD:?Gere o .env local}@rabbit1:5672/,amqp://ecopulse:${RABBIT_PASSWORD}@rabbit2:5672/,amqp://ecopulse:${RABBIT_PASSWORD}@rabbit3:5672/
+  REDIS_CLUSTER_URLS: redis://:${REDIS_PASSWORD:?Gere o .env local}@redis1:6379,redis://:${REDIS_PASSWORD}@redis2:6379,redis://:${REDIS_PASSWORD}@redis3:6379,redis://:${REDIS_PASSWORD}@redis4:6379,redis://:${REDIS_PASSWORD}@redis5:6379,redis://:${REDIS_PASSWORD}@redis6:6379
+  JWT_SECRET: ${JWT_SECRET:?Gere o .env local}
+  SHARD_COUNT: "4"
+  RABBIT_QUORUM_SIZE: "3"
+  DATA_DIR: /app/data
+  FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
+  ORS_API_KEY: ${ORS_API_KEY:-}
+  ENVIRONMENT_SOURCE: ${ENVIRONMENT_SOURCE:-open-meteo}
+
+x-cluster-application: &cluster-application
+  image: ecopulse-backend:${ECOPULSE_IMAGE_TAG:-local}
+  build: {context: .., dockerfile: backend/Dockerfile}
+  restart: unless-stopped
+  environment: *cluster-environment
+  volumes: [../secrets:/run/secrets:ro]
+  depends_on:
+    db: {condition: service_healthy}
+    rabbit1: {condition: service_healthy}
+    rabbit2: {condition: service_healthy}
+    rabbit3: {condition: service_healthy}
+    rabbit-init: {condition: service_completed_successfully}
+    redis-init: {condition: service_completed_successfully}
+
+x-cluster-rabbit: &cluster-rabbit
+  image: rabbitmq:4.3.6-management
+  restart: unless-stopped
+  healthcheck:
+    test: [CMD, rabbitmq-diagnostics, -q, ping]
+    interval: 5s
+    timeout: 10s
+    retries: 30
+
+x-cluster-redis: &cluster-redis
+  image: redis:8.2.10-alpine
+  restart: unless-stopped
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD:?Gere o .env local}
+  healthcheck:
+    test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+    interval: 5s
+    timeout: 3s
+    retries: 20
+
+services:
+  db-replica:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:?Gere o .env local}
+    entrypoint: [bash, /scripts/start-replica.sh]
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+      - ./postgres/start-replica.sh:/scripts/start-replica.sh:ro
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U ecopulse -d ecopulse']
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+
+  rabbit1:
+    volumes:
+      - ./rabbit/rabbitmq.cluster.conf:/etc/rabbitmq/rabbitmq.conf:ro
+  rabbit2:
+    <<: *cluster-rabbit
+    hostname: rabbit2
+    environment:
+      RABBITMQ_NODENAME: rabbit@rabbit2
+      RABBITMQ_DEFAULT_USER: ecopulse
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:?Gere o .env local}
+      RABBITMQ_ERLANG_COOKIE: ${RABBIT_ERLANG_COOKIE:?Gere o .env local}
+    volumes:
+      - rabbit2-data:/var/lib/rabbitmq
+      - ./rabbit/rabbitmq.cluster.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbit/definitions.json:/etc/rabbitmq/definitions.json:ro
+    depends_on:
+      rabbit1: {condition: service_healthy}
+  rabbit3:
+    <<: *cluster-rabbit
+    hostname: rabbit3
+    environment:
+      RABBITMQ_NODENAME: rabbit@rabbit3
+      RABBITMQ_DEFAULT_USER: ecopulse
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:?Gere o .env local}
+      RABBITMQ_ERLANG_COOKIE: ${RABBIT_ERLANG_COOKIE:?Gere o .env local}
+    volumes:
+      - rabbit3-data:/var/lib/rabbitmq
+      - ./rabbit/rabbitmq.cluster.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbit/definitions.json:/etc/rabbitmq/definitions.json:ro
+    depends_on:
+      rabbit2: {condition: service_healthy}
+
+  redis4:
+    <<: *cluster-redis
+    command: [sh, -c, 'exec redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname redis4 --cluster-preferred-endpoint-type hostname --requirepass "$$REDIS_PASSWORD" --masterauth "$$REDIS_PASSWORD" --protected-mode no']
+    volumes: [redis4-data:/data]
+  redis5:
+    <<: *cluster-redis
+    command: [sh, -c, 'exec redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname redis5 --cluster-preferred-endpoint-type hostname --requirepass "$$REDIS_PASSWORD" --masterauth "$$REDIS_PASSWORD" --protected-mode no']
+    volumes: [redis5-data:/data]
+  redis6:
+    <<: *cluster-redis
+    command: [sh, -c, 'exec redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname redis6 --cluster-preferred-endpoint-type hostname --requirepass "$$REDIS_PASSWORD" --masterauth "$$REDIS_PASSWORD" --protected-mode no']
+    volumes: [redis6-data:/data]
+  redis-init:
+    environment:
+      REDIS_NODE_COUNT: "6"
+      REDIS_REPLICAS: "1"
+    depends_on:
+      redis4: {condition: service_healthy}
+      redis5: {condition: service_healthy}
+      redis6: {condition: service_healthy}
+
+  rabbit-init:
+    environment:
+      RABBIT_EXPECTED_NODES: "3"
+    depends_on:
+      rabbit2: {condition: service_healthy}
+      rabbit3: {condition: service_healthy}
+
+  api:
+    environment: *cluster-environment
+    depends_on:
+      rabbit2: {condition: service_healthy}
+      rabbit3: {condition: service_healthy}
+  api2:
+    <<: *cluster-application
+    command: [uvicorn, backend.api.main:app, --host, 0.0.0.0, --port, "8000", --no-access-log]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health',timeout=5)"]
+      interval: 10s
+      timeout: 6s
+      retries: 12
+      start_period: 30s
+  worker:
+    environment: *cluster-environment
+    depends_on:
+      rabbit2: {condition: service_healthy}
+      rabbit3: {condition: service_healthy}
+  worker2:
+    <<: *cluster-application
+    command: [python, -m, backend.worker.main]
+  alerts:
+    environment: *cluster-environment
+    depends_on:
+      rabbit2: {condition: service_healthy}
+      rabbit3: {condition: service_healthy}
+  nginx:
+    volumes:
+      - ./nginx/cluster.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api2: {condition: service_started}
+
+volumes:
+  postgres-replica-data:
+  rabbit2-data:
+  rabbit3-data:
+  redis4-data:
+  redis5-data:
+  redis6-data:

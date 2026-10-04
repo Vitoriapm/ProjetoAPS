@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "vhost": "/", "name": "ecopulse-dlq-preserve",
+      "pattern": "^ecopulse.*\\.dlq$", "apply-to": "quorum_queues", "priority": 30,
+      "definition": {"delivery-limit": -1, "overflow": "reject-publish"}
+    },
+    {
+      "vhost": "/", "name": "ecopulse-retry-durable",
+      "pattern": "^ecopulse.*\\.retry$", "apply-to": "quorum_queues", "priority": 20,
+      "definition": {"dead-letter-strategy": "at-least-once", "overflow": "reject-publish"}
+    },
+    {
+      "vhost": "/", "name": "ecopulse-processing-durable",
+      "pattern": "^ecopulse\\.(risk\\.[0-9]+|alerts)$", "apply-to": "quorum_queues", "priority": 10,
+      "definition": {"dead-letter-strategy": "at-least-once", "overflow": "reject-publish"}
+    }
+  ]
+}
