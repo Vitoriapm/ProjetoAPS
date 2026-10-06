@@ -1,0 +1,59 @@
+{
+  "checked_at_utc": "2026-10-05T02:53:40.844890+00:00",
+  "checked_at_local": "2026-10-04T23:53:40.844890-03:00",
+  "local_timezone": "America/Sao_Paulo",
+  "read_only": true,
+  "server_mode_context": "demo",
+  "reports_total": 21,
+  "fictitious_reports_total": 21,
+  "fictitious_reports_received_last_10m": 2,
+  "fictitious_reports_received_last_30m": 3,
+  "fictitious_reports_received_last_60m": 3,
+  "latest_fictitious_report": {
+    "type": "obstrucao",
+    "severity": "baixa",
+    "received_age_s": 234.7,
+    "occurred_age_s": 234.9,
+    "incident_link_found": true,
+    "risk_consumer_processed": true,
+    "emitted_incident_event": {
+      "type": "incidente.atualizado",
+      "version": 3
+    }
+  },
+  "related_incident": {
+    "type": "obstrucao",
+    "severity": "baixa",
+    "version": 3,
+    "active_flag": true,
+    "active_at_check": true,
+    "remaining_validity_s_at_check": 1565.1,
+    "report_count": 3,
+    "state": "relatado",
+    "influence_radius_m": 200,
+    "last_update_age_s": 234.9,
+    "is_fictitious": true,
+    "linked_reports_total": 3
+  },
+  "fictitious_incident_counts": {
+    "total": 11,
+    "active_at_check": 1,
+    "expired_but_flag_active": 0
+  },
+  "rules_checked": {
+    "incident_expiration_s": 1800,
+    "aggregation_influence_m": 200,
+    "collaborative_window_s": 600,
+    "local_proximity_radius_m": 1000,
+    "local_warning_requires_high_severity": false,
+    "local_deduplication_key": "incident_id + version",
+    "fcm_position_valid_s": 3600,
+    "fcm_selection_uses_device_radius_plus_incident_influence": true,
+    "demo_automatically_dispatches_fcm": false
+  },
+  "database_changed_by_audit": false,
+  "notification_sent_by_audit": false,
+  "phone_observed": false,
+  "notification_seen_on_phone": null,
+  "notice": "Snapshot do servidor no horário indicado. Não comprova que o aviso foi exibido ou visto no aparelho. Não contém IDs, descrições, tokens ou coordenadas."
+}

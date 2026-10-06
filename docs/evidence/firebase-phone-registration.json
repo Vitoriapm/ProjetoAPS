@@ -1,0 +1,9 @@
+{
+  "checked_at_utc": "2026-10-05T01:51:41.409091+00:00",
+  "registered_android_push_device_count": 1,
+  "token_prepared_in_local_secret_file": true,
+  "token_or_installation_id_exposed": false,
+  "device_identification": "single Android registration after user-installed Firebase APK",
+  "user_reported_phone_installed_and_configured": true,
+  "device_receipt_verified": false
+}

@@ -22,6 +22,10 @@ def source_files():
     for name in (
         "README.md", "PLANO_EXECUCAO_ECOPULSE.md", ".env.example",
         ".gitignore", ".dockerignore", "secrets/.gitkeep",
+        "entregas/Relatorio_APS_EcoPulse.docx",
+        "entregas/Roteiro_Apresentacao_EcoPulse.docx",
+        "entregas/COMO_USAR.md",
+        "entregas/firebase-tests-apk-info.json",
     ):
         candidate = ROOT / name
         if candidate.is_file():
@@ -30,7 +34,7 @@ def source_files():
         for current, directories, files in os.walk(ROOT / folder):
             directories[:] = [d for d in directories if d not in PRUNE]
             for name in files:
-                if name in SKIP or name.startswith(".env") or name.endswith((".db", ".db-wal", ".db-shm", ".pyc", ".log", ".iml")):
+                if name in SKIP or name.startswith(".env") or name.lower().endswith((".db", ".db-wal", ".db-shm", ".pyc", ".log", ".iml", ".p8", ".p12", ".pem", ".key", ".jks", ".keystore")):
                     continue
                 yield Path(current) / name
 

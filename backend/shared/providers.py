@@ -1,9 +1,8 @@
 from datetime import timedelta, datetime, timezone
 import math
+from copy import deepcopy
 from uuid import UUID, uuid5
 import httpx
-from shapely.geometry import shape, Point, mapping
-from shapely.ops import unary_union
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
@@ -14,12 +13,8 @@ from .geo import circle_polygon, distance_m, geohash
 NAMESPACE = UUID("8c842f7a-9518-4ac7-bf01-6b57420510e0")
 
 
-class ProviderUnavailable(Exception):
-    pass
-
-
-class RouteRejected(Exception):
-    pass
+from .routes import calculate_route, ProviderUnavailable, RouteRejected
+from .heat import heat_layers, HeatDataError
 
 
 def observation_upsert(key, feature, *, postgres):
@@ -33,6 +28,9 @@ def observation_upsert(key, feature, *, postgres):
 
 def fixture_layers(now=None):
     now = now or utc_now()
+    # Stable examples during a 30-minute window; repeated reads do not create
+    # new layer events or renew their validity indefinitely.
+    now = datetime.fromtimestamp(int(now.timestamp()) // 1800 * 1800, timezone.utc)
     expires = iso(now + timedelta(minutes=30))
     features = []
     for kind, lat, lon, value, unit, scale in [
@@ -45,21 +43,81 @@ def fixture_layers(now=None):
             "properties": {"id": feature_id, "kind": kind, "value": value, "unit": unit,
                 "scale": scale, "source": "Fixture acadêmica EcoPulse — Ribeirão Preto",
                 "updated_at": iso(now), "expires_at": expires, "is_demo": True,
+                "center_latitude": lat, "center_longitude": lon,
+                "radius_m": 550 if kind == "calor" else 0,
                 "label": "Dados simulados para demonstração"}})
     return features
 
 
+
+def _same_observation(left, right):
+    def content(feature):
+        clone = deepcopy(feature)
+        for key in ("expires_at", "version"):
+            clone["properties"].pop(key, None)
+        return clone
+    return content(left) == content(right)
+
+
+def persist_environment_features(store, features):
+    """Store observations and versioned events together, retaining valid TTLs.
+
+    Postgres advisory locking serializes initial writes between API processes.
+    The actual key insert still uses upsert for existing SQLite/legacy stores.
+    """
+    result = []
+    with store.transaction(risk_lock=True) as connection:
+        for raw in features:
+            feature = deepcopy(raw)
+            props = feature["properties"]
+            region = props.get("region_id")
+            if not region:
+                if "center_latitude" in props:
+                    region = geohash(props["center_latitude"], props["center_longitude"])
+                else:
+                    lon, lat = feature["geometry"]["coordinates"]
+                    region = geohash(lat, lon)
+                props["region_id"] = region
+            key = ("aqi:" + region if props["kind"] == "aqi" and not props["is_demo"]
+                   else ("fixture:" if props["is_demo"] else "") + props["kind"] + ":" + props["id"])
+            previous = connection.execute(select(environment.c.data).where(environment.c.id == key)).scalar_one_or_none()
+            now = utc_now()
+            if (previous and previous["properties"].get("version")
+                    and parse_time(previous["properties"]["expires_at"]) > now
+                    and _same_observation(previous, feature)):
+                result.append(previous)
+                continue
+            previous_version = previous["properties"].get("version", 0) if previous else 0
+            props["version"] = max(int(now.timestamp() * 1_000_000), previous_version + 1)
+            connection.execute(observation_upsert(key, feature, postgres=store.pg))
+            event = make_event("camada.atualizada", props["id"], props["version"], region, feature)
+            save_event(connection, event, store.settings.shard_count)
+            result.append(feature)
+    return result
+
+
 async def environmental_layers(store, settings, latitude, longitude, client=None):
     fixtures = fixture_layers()
-    if settings.mode == "demo" or settings.environment_source == "fixtures":
-        return {"type": "FeatureCollection", "features": fixtures, "mode": "demo" if settings.mode == "demo" else "fixtures"}
+    if settings.environment_source == "fixtures":
+        features = persist_environment_features(store, fixtures)
+        return {"type": "FeatureCollection", "features": features, "mode": "fixtures"}
+    try:
+        heat = heat_layers(path=getattr(settings, "heat_file", "") or None)
+    except HeatDataError as exc:
+        raise ProviderUnavailable(str(exc)) from exc
+    if settings.mode == "demo":
+        # AQI remains a labelled fixture in the offline presentation mode.
+        # Landsat is an actual archived acquisition, explicitly historical.
+        features = persist_environment_features(store, [fixtures[0]] + heat)
+        return {"type": "FeatureCollection", "features": features, "mode": "demo"}
     now = utc_now()
     region = geohash(latitude, longitude)
     key = "aqi:" + region
-    with store.engine.connect() as conn:
-        previous = conn.execute(select(environment.c.data).where(environment.c.id == key)).scalar_one_or_none()
-    if previous and parse_time(previous["properties"]["expires_at"]) > now:
-        return {"type": "FeatureCollection", "features": [previous] + [x for x in fixtures if x["properties"]["kind"] == "calor"]}
+    with store.engine.connect() as connection:
+        previous = connection.execute(select(environment.c.data).where(environment.c.id == key)).scalar_one_or_none()
+    if (previous and not previous["properties"]["is_demo"]
+            and parse_time(previous["properties"]["expires_at"]) > now):
+        return {"type": "FeatureCollection", "features": [previous] + persist_environment_features(store, heat)}
     owned = client is None
     client = client or httpx.AsyncClient(timeout=12)
     try:
@@ -69,8 +127,6 @@ async def environmental_layers(store, settings, latitude, longitude, client=None
         payload = response.json()
         current = payload["current"]
         value = current["us_aqi"]
-        # Open-Meteo documents US AQI values beyond 500; do not suppress a
-        # valid severe value. Reject missing, negative and non-finite values.
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
             raise ValueError("AQI fora da escala suportada")
         grid_latitude, grid_longitude = payload["latitude"], payload["longitude"]
@@ -86,64 +142,11 @@ async def environmental_layers(store, settings, latitude, longitude, client=None
             "properties": {"id": feature_id, "kind": "aqi", "value": value, "unit": "AQI", "scale": "US AQI",
                 "source": "Open-Meteo / Copernicus CAMS Global (~45 km), previsão modelada",
                 "updated_at": iso(observed), "expires_at": iso(now + timedelta(minutes=15)),
-                "is_demo": False, "label": "AQI modelado; não é medição de estação local",
+                "region_id": region, "is_demo": False, "label": "AQI modelado; não é medição de estação local",
                 "attribution": "CAMS ENSEMBLE / Open-Meteo, CC BY 4.0"}}
-        with store.transaction() as conn:
-            conn.execute(observation_upsert(key, feature, postgres=store.pg))
-            event = make_event("camada.atualizada", feature_id, int(now.timestamp()), region, feature)
-            save_event(conn, event, settings.shard_count)
-        return {"type": "FeatureCollection", "features": [feature] + [x for x in fixtures if x["properties"]["kind"] == "calor"]}
+        return {"type": "FeatureCollection", "features": persist_environment_features(store, [feature] + heat)}
     except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
         raise ProviderUnavailable("Não foi possível consultar a qualidade do ar. Tente novamente.") from exc
-    finally:
-        if owned:
-            await client.aclose()
-
-
-async def calculate_route(store, settings, request, client=None):
-    if not settings.ors_key:
-        raise ProviderUnavailable("Rotas aguardam a configuração da chave do OpenRouteService no servidor.")
-    if distance_m(request.origem.latitude, request.origem.longitude, request.destino.latitude, request.destino.longitude) > 50000:
-        raise RouteRejected("Escolha um destino até 50 km da origem para esta demonstração.")
-    features = store.active_features()
-    polygons = [shape(feature["geometry"]) for feature in features]
-    if any(not polygon.is_valid for polygon in polygons):
-        raise RouteRejected("Há uma geometria de bloqueio inválida; o cálculo foi interrompido.")
-    start = Point(request.origem.longitude, request.origem.latitude)
-    end = Point(request.destino.longitude, request.destino.latitude)
-    if any(polygon.intersects(start) or polygon.intersects(end) for polygon in polygons):
-        raise RouteRejected("A origem ou o destino está dentro de uma ocorrência registrada. Escolha outro ponto.")
-    payload = {"coordinates": [[start.x, start.y], [end.x, end.y]], "instructions": False}
-    if polygons:
-        # Union removes overlaps; every active polygon remains excluded.
-        payload["options"] = {"avoid_polygons": mapping(unary_union(polygons))}
-    owned = client is None
-    client = client or httpx.AsyncClient(timeout=20)
-    try:
-        response = await client.post(f"https://api.openrouteservice.org/v2/directions/{request.perfil}/geojson",
-            json=payload, headers={"Authorization": settings.ors_key})
-        if response.status_code in {400, 404, 422}:
-            raise RouteRejected("Não foi encontrada uma rota que evite as ocorrências registradas.")
-        response.raise_for_status()
-        data = response.json()
-        route = data["features"][0]
-        geometry = route["geometry"]
-        line = shape(geometry)
-        if geometry["type"] != "LineString" or line.is_empty or not line.is_valid:
-            raise RouteRejected("O provedor retornou uma rota inválida.")
-        if any(line.intersects(polygon) for polygon in polygons):
-            raise RouteRejected("A rota retornada cruza uma ocorrência. Nenhuma rota foi apresentada.")
-        summary = route["properties"]["summary"]
-        for value in (summary["distance"], summary["duration"]):
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
-                raise ValueError("Resumo de rota inválido")
-        return {"geometry": geometry, "distance_m": summary["distance"], "duration_s": summary["duration"],
-            "avoided_incidents": len(features), "source": "OpenRouteService / OpenStreetMap",
-            "updated_at": iso(utc_now()), "label": "Rota alternativa evitando ocorrências registradas"}
-    except RouteRejected:
-        raise
-    except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
-        raise ProviderUnavailable("O serviço de rotas está indisponível. Tente novamente.") from exc
     finally:
         if owned:
             await client.aclose()

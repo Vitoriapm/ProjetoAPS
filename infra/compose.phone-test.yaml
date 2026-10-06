@@ -1,0 +1,46 @@
+# Overlay reproduzível para projeto fresco: ecopulse-fcm-test.
+# Na raiz, em PowerShell, após preparar a imagem/configuração local:
+# $env:ECOPULSE_IMAGE_TAG = "fcm-test"
+# docker compose -p ecopulse-fcm-test --env-file .env -f infra/compose.yaml -f infra/compose.cluster.yaml -f infra/compose.phone-test.yaml config --quiet
+# docker compose -p ecopulse-fcm-test --env-file .env -f infra/compose.yaml -f infra/compose.cluster.yaml -f infra/compose.phone-test.yaml up -d nginx worker alerts
+# O subset não inicia db-replica nem worker2; ambos têm limites se iniciados depois.
+# Não reutilizar ecopulse-validation: seu primário antigo permanece isolado.
+# Gateway acessível ao celular na rede local; Rabbit publicado somente em localhost.
+# Limites são tetos por serviço, não uma medição do consumo ou garantia contra OOM.
+services:
+  nginx:
+    ports: !override ["0.0.0.0:8011:8000"]
+    mem_limit: 64m
+  rabbit1:
+    ports: !override ["127.0.0.1:15674:15672"]
+    mem_limit: 512m
+  rabbit2:
+    mem_limit: 512m
+  rabbit3:
+    mem_limit: 512m
+  db:
+    mem_limit: 256m
+  db-replica:
+    mem_limit: 256m
+  api:
+    mem_limit: 256m
+  api2:
+    mem_limit: 256m
+  worker:
+    mem_limit: 192m
+  worker2:
+    mem_limit: 192m
+  alerts:
+    mem_limit: 256m
+  redis1:
+    mem_limit: 128m
+  redis2:
+    mem_limit: 128m
+  redis3:
+    mem_limit: 128m
+  redis4:
+    mem_limit: 128m
+  redis5:
+    mem_limit: 128m
+  redis6:
+    mem_limit: 128m

@@ -12,6 +12,12 @@ class EnvironmentalPoint {
     required this.latitude,
     required this.longitude,
     this.polygon,
+    this.observationType,
+    this.surfaceTemperatureC,
+    this.referenceTemperatureC,
+    this.expiresAt,
+    this.attribution,
+    this.sceneId,
   });
 
   final String id;
@@ -26,6 +32,12 @@ class EnvironmentalPoint {
   final double latitude;
   final double longitude;
   final List<List<double>>? polygon;
+  final String? observationType;
+  final double? surfaceTemperatureC;
+  final double? referenceTemperatureC;
+  final DateTime? expiresAt;
+  final String? attribution;
+  final String? sceneId;
 
   factory EnvironmentalPoint.fromFeature(Map<String, dynamic> feature) {
     final properties = Map<String, dynamic>.from(feature['properties'] as Map);
@@ -52,9 +64,21 @@ class EnvironmentalPoint {
       updatedAt: DateTime.parse(properties['updated_at'] as String),
       isDemo: properties['is_demo'] as bool? ?? false,
       label: properties['label'] as String,
-      longitude: (anchor[0] as num).toDouble(),
-      latitude: (anchor[1] as num).toDouble(),
+      longitude:
+          (properties['center_longitude'] as num?)?.toDouble() ??
+          (anchor[0] as num).toDouble(),
+      latitude:
+          (properties['center_latitude'] as num?)?.toDouble() ??
+          (anchor[1] as num).toDouble(),
       polygon: polygon,
+      observationType: properties['observation_type'] as String?,
+      surfaceTemperatureC: (properties['surface_temperature_c'] as num?)
+          ?.toDouble(),
+      referenceTemperatureC: (properties['reference_temperature_c'] as num?)
+          ?.toDouble(),
+      expiresAt: DateTime.tryParse(properties['expires_at'] as String? ?? ''),
+      attribution: properties['attribution'] as String?,
+      sceneId: properties['scene_id'] as String?,
     );
   }
 
@@ -80,6 +104,16 @@ class EnvironmentalPoint {
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'is_demo': isDemo,
       'label': label,
+      'center_latitude': latitude,
+      'center_longitude': longitude,
+      if (observationType != null) 'observation_type': observationType,
+      if (surfaceTemperatureC != null)
+        'surface_temperature_c': surfaceTemperatureC,
+      if (referenceTemperatureC != null)
+        'reference_temperature_c': referenceTemperatureC,
+      if (expiresAt != null) 'expires_at': expiresAt!.toUtc().toIso8601String(),
+      if (attribution != null) 'attribution': attribution,
+      if (sceneId != null) 'scene_id': sceneId,
     },
   };
 }

@@ -51,6 +51,7 @@ async def check():
                 source=properties["source"], label=properties["label"],
                 aqi_is_demo=properties["is_demo"],
                 heat_remains_simulated=bool(heat) and all(feature["properties"]["is_demo"] for feature in heat),
+                heat_is_historical_landsat=bool(heat) and all(feature["properties"].get("observation_type") == "historic" for feature in heat),
             )
         except ProviderUnavailable as failure:
             # Exception text may contain provider URLs; only classes/status leave this script.

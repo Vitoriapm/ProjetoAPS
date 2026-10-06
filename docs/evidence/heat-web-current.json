@@ -1,0 +1,27 @@
+{
+  "validated_at": "2026-10-04T15:47:51.908092-03:00",
+  "url": "http://127.0.0.1:5173/",
+  "viewport": [
+    390,
+    844
+  ],
+  "backend_mode": "demo",
+  "heat_feature_count": 32,
+  "heat_is_historical_landsat": true,
+  "acquisition_date": "2025-09-17",
+  "air_is_labelled_fixture": true,
+  "browser_page_errors": [],
+  "console_errors": [],
+  "visual_checks": [
+    "map and layer controls visible",
+    "heat detail sheet readable without overflow",
+    "historic warning with year visible",
+    "surface contrast and vegetation reference visible",
+    "source, acquisition date and attribution visible"
+  ],
+  "screenshot_files": [
+    "home-web-current.png",
+    "heat-web-current.png"
+  ],
+  "provider_receipt_or_current_heat_monitoring_proven": false
+}

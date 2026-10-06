@@ -1,0 +1,18 @@
+{
+  "scope": "Android emulator, real map menu/UI and native SQLite; isolated fake backend",
+  "physical_phone_observed": false,
+  "real_server_mutated": false,
+  "fcm_tested": false,
+  "checks": {
+    "outside_1km_no_warning": true,
+    "map_menu_entry_shows_warning": true,
+    "warning_survives_successful_refresh": true,
+    "warning_survives_offline_refresh": true,
+    "dismissal_independent_of_error": true,
+    "same_version_no_repeat_after_exit_and_return": true,
+    "sqlite_dedup_after_reopening_offline": true,
+    "new_version_warns": true,
+    "expired_warning_removed": true
+  },
+  "checked_at_utc": "2026-10-05T03:13:50.660414Z"
+}

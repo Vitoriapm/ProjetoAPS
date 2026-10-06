@@ -1,0 +1,50 @@
+{
+  "counts": {
+    "reports": 0,
+    "incidents": 0,
+    "devices": 1,
+    "deliveries": 0,
+    "outbox_pending": 0
+  },
+  "android_devices": 1,
+  "android_token_present": true,
+  "android_position_present": true,
+  "android_position_in_demo_region": true,
+  "coarse_demo_grid_near_phone": true,
+  "coarse_demo_grid_in_demo_region": true,
+  "fcm_file_readable_in_container": true,
+  "checked_at_utc": "2026-10-05T13:11:15.616803+00:00",
+  "project": "ecopulse-fcm-test",
+  "gateway_port": 8011,
+  "health": {
+    "status": "ok",
+    "mode": "full",
+    "services": {
+      "database": "ok",
+      "broker": "ok",
+      "cache": "ok"
+    },
+    "outbox_pending": 0,
+    "configuration": {
+      "shards": 4,
+      "fcm_configured": true,
+      "routes_configured": true,
+      "heat_source": "landsat_historico"
+    },
+    "notice": "Infraestrutura real; validação requer evidências de execução"
+  },
+  "active_scope": {
+    "postgres_primary": 1,
+    "apis": 2,
+    "workers": 1,
+    "rabbit_nodes": 3,
+    "redis_nodes": 6,
+    "postgres_replica": false
+  },
+  "alerts_dispatcher_paused_for_phone_preparation": true,
+  "geographic_push_test_executed": false,
+  "notification_sent_by_this_preparation": false,
+  "physical_phone_receipt_confirmed": false,
+  "old_validation_project_remains_stopped": true,
+  "secrets_or_coordinates_recorded": false
+}

@@ -1,0 +1,24 @@
+{
+  "status": "PROVIDER_ACCEPTED_RECEIPT_PENDING",
+  "mode": "foreground-send",
+  "project": "ecopulse-fcm-test",
+  "checked_at_utc": "2026-10-06T13:06:50.627079+00:00",
+  "is_demo": true,
+  "device_receipt_verified": false,
+  "gps_movement_tested": false,
+  "physical_phones": 1,
+  "position_source_confirmed_by_user": false,
+  "outside_position_source": null,
+  "readiness": {
+    "one_android_registered": true,
+    "token_present": true,
+    "position_present": true,
+    "position_recent_120s": false,
+    "accuracy_present": true,
+    "outside_reference_geofence_with_200m_margin": true,
+    "fcm_configured": true
+  },
+  "provider_accepted": true,
+  "direct_fcm_only": true,
+  "geographic_pipeline_tested": false
+}

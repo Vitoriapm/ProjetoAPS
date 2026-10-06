@@ -14,6 +14,6 @@ if ($Seed) {
     if ($LASTEXITCODE -ne 0) { throw 'Inicie o servidor antes de usar -Seed.' }
     exit
 }
-$env:ECOPULSE_MODE = 'demo'
-Write-Host "EcoPulse DEMONSTRAÇÃO em http://127.0.0.1:$Port — SQLite local, dados fictícios."
-& $venvPython -m uvicorn backend.api.main:app --host 0.0.0.0 --port $Port --no-access-log
+Write-Host "EcoPulse DEMONSTRAÇÃO em http://127.0.0.1:$Port — SQLite local, AQI/relatos de exemplo; calor Landsat histórico."
+& $venvPython 'scripts/run_demo.py' --port $Port
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao executar o servidor demo.' }

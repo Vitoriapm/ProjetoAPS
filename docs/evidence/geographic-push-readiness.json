@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "mode": "inspect",
+  "project": "ecopulse-fcm-test",
+  "device_receipt_verified": false,
+  "broker_retry_injected": false,
+  "status": "PENDING",
+  "inspection": {
+    "health": {
+      "status": "ok",
+      "mode": "full",
+      "fcm_configured_in_api": true
+    },
+    "counts": {
+      "reports": 0,
+      "incidents": 0,
+      "devices": 1,
+      "deliveries": 0
+    },
+    "outbox_pending": 0,
+    "synthetic": {
+      "inside": {
+        "registered": false,
+        "platform_web": false,
+        "token_present": false,
+        "fresh_position": false,
+        "selected_by_current_geofence": false,
+        "delivery_statuses": []
+      },
+      "outside": {
+        "registered": false,
+        "platform_web": false,
+        "token_present": false,
+        "fresh_position": false,
+        "selected_by_current_geofence": false,
+        "delivery_statuses": []
+      }
+    },
+    "android": {
+      "registered_count": 1,
+      "token_present_count": 1,
+      "position_present_count": 1,
+      "fresh_position_count": 1,
+      "accuracy_present_count": 0,
+      "selected_by_current_geofence_count": 0,
+      "provider_accepted_count": 0,
+      "delivery_status_counts": {},
+      "device_receipt_verified": false
+    },
+    "ios_registered_count": 0,
+    "selection_rule": {
+      "device_radius_m": 1000,
+      "incident_influence_m": 200,
+      "default_total_radius_m": 1200,
+      "position_valid_seconds": 3600,
+      "high_severity_required": false
+    },
+    "pipeline": {
+      "fictional_report_present": false,
+      "immutable_report_payload_matches": false,
+      "report_to_incident_links": 0,
+      "incident_report_count": 0,
+      "report_outbox_events": 0,
+      "incident_outbox_events": 0,
+      "related_outbox_published": 0,
+      "risk_processed_count": 0,
+      "alerts_processed_count": 0,
+      "complete": false
+    }
+  }
+}

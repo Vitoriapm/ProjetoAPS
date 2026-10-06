@@ -1,5 +1,11 @@
 .env
 secrets/*
+*.p8
+*.p12
+*.pem
+*.key
+*.jks
+*.keystore
 !secrets/.gitkeep
 __pycache__/
 .pytest_cache/

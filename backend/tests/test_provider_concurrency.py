@@ -53,10 +53,15 @@ def test_concurrent_first_aqi_fetches_share_one_durable_observation(tmp_path):
             collections = [future.result(timeout=10) for future in futures]
         assert [collection["features"][0]["properties"]["value"] for collection in collections] == [61, 62]
         with stores[0].engine.connect() as connection:
-            assert connection.execute(select(func.count()).select_from(environment)).scalar_one() == 1
-            assert connection.execute(select(func.count()).select_from(outbox)).scalar_one() == 2
-            cached = connection.execute(select(environment.c.data)).scalar_one()
+            assert connection.execute(select(func.count()).select_from(environment).where(environment.c.id.like("aqi:%"))).scalar_one() == 1
+            assert connection.execute(select(func.count()).select_from(outbox).where(
+                outbox.c.event["payload"]["properties"]["kind"].as_string() == "aqi")).scalar_one() == 2
+            cached = connection.execute(select(environment.c.data).where(environment.c.id.like("aqi:%"))).scalar_one()
             assert cached["properties"]["value"] in {61, 62}
+            heat_count = len(collections[0]["features"]) - 1
+            assert connection.execute(select(func.count()).select_from(environment).where(environment.c.id.like("calor:%"))).scalar_one() == heat_count
+            assert connection.execute(select(func.count()).select_from(outbox).where(
+                outbox.c.event["payload"]["properties"]["kind"].as_string() == "calor")).scalar_one() == heat_count
     finally:
         for repository in stores:
             repository.engine.dispose()

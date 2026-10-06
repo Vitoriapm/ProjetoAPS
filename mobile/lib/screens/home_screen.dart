@@ -123,6 +123,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Color(0xFF8B651D),
                   ),
                 ),
+              if (controller.proximityMessage != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: InfoStrip(
+                    icon: Icons.warning_amber_rounded,
+                    color: const Color(0xFFAC6B15),
+                    text: controller.proximityMessage!,
+                    trailing: IconButton(
+                      onPressed: controller.clearProximityMessage,
+                      constraints: const BoxConstraints(
+                        minWidth: 28,
+                        minHeight: 28,
+                      ),
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.close, size: 16),
+                      tooltip: 'Fechar aviso de proximidade',
+                    ),
+                  ),
+                ),
               if (controller.message != null)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -867,11 +886,30 @@ class _HomeScreenState extends State<HomeScreen> {
   void _environmentDetails(EnvironmentalPoint point) => _detailSheet(
     point.kind == 'aqi' ? 'Qualidade do ar' : 'Camada de calor',
     [
-      _detailRow('Valor', '${point.value.toStringAsFixed(1)} ${point.unit}'),
-      _detailRow('Local', point.label),
+      _detailRow(
+        point.kind == 'calor' ? 'Contraste da superfície' : 'Valor',
+        '${point.value.toStringAsFixed(1)} ${point.unit}',
+      ),
+      _detailRow('Sobre o dado', point.label),
+      if (point.surfaceTemperatureC != null)
+        _detailRow(
+          'Temperatura da superfície',
+          '${point.surfaceTemperatureC!.toStringAsFixed(1)} °C',
+        ),
+      if (point.referenceTemperatureC != null)
+        _detailRow(
+          'Referência vegetada da cena',
+          '${point.referenceTemperatureC!.toStringAsFixed(1)} °C',
+        ),
       _detailRow('Escala', point.scale),
       _detailRow('Fonte', point.source),
-      _detailRow('Atualização', shortDate(point.updatedAt)),
+      _detailRow(
+        point.observationType == 'historic'
+            ? 'Aquisição da imagem'
+            : 'Atualização',
+        shortDate(point.updatedAt),
+      ),
+      if (point.attribution != null) _detailRow('Créditos', point.attribution!),
       if (point.isDemo)
         const InfoStrip(
           icon: Icons.science_outlined,
@@ -951,7 +989,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const Text('Ar e calor', style: TextStyle(fontWeight: FontWeight.w600)),
     const SizedBox(height: 7),
     const Text(
-      'Os números mostram o índice de qualidade do ar (AQI) ou a temperatura em °C. Toque neles para conferir escala, fonte e data. Áreas de calor não substituem uma medição local.',
+      'Ar mostra o AQI. Calor mostra o contraste de temperatura da superfície de uma imagem histórica Landsat, em °C. Toque para conferir fonte e data; não é a temperatura atual do ar.',
       style: TextStyle(fontSize: 13, height: 1.5),
     ),
     const SizedBox(height: 16),

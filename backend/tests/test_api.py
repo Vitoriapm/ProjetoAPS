@@ -74,10 +74,42 @@ def test_websocket_subscribe_ping_and_update_second_client(client):
         assert event["type"] == "incidente.criado" and event["version"] == 1
 
 
-def test_fixtures_always_identify_simulation(client):
+def test_demo_labels_aqi_fixture_and_real_historical_heat_separately(client):
     features = client.get("/v1/camadas/ambientais").json()["features"]
     assert {x["properties"]["kind"] for x in features} == {"aqi", "calor"}
+    aqi = next(x for x in features if x["properties"]["kind"] == "aqi")
+    heat = [x for x in features if x["properties"]["kind"] == "calor"]
+    assert aqi["properties"]["is_demo"] and "simulados" in aqi["properties"]["label"]
+    assert heat and all(not x["properties"]["is_demo"]
+        and "Histórico" in x["properties"]["label"] for x in heat)
+
+
+def test_explicit_fixtures_never_claim_real_measurements(client):
+    client.app.state.store.settings.environment_source = "fixtures"
+    features = client.get("/v1/camadas/ambientais").json()["features"]
     assert all(x["properties"]["is_demo"] and "simulados" in x["properties"]["label"] for x in features)
+
+
+def test_repeated_read_preserves_historical_heat_versions_and_cache_deadline(client):
+    first = client.get("/v1/camadas/ambientais").json()["features"]
+    second = client.get("/v1/camadas/ambientais").json()["features"]
+    first_heat = {x["id"]: x for x in first if x["properties"]["kind"] == "calor"}
+    second_heat = {x["id"]: x for x in second if x["properties"]["kind"] == "calor"}
+    assert first_heat == second_heat
+    assert all(x["properties"]["updated_at"].startswith("2025-09-17") for x in first_heat.values())
+    from sqlalchemy import select, func
+    from backend.shared.db import outbox
+    with client.app.state.store.engine.connect() as connection:
+        assert connection.execute(select(func.count()).select_from(outbox).where(
+            outbox.c.event["payload"]["properties"]["kind"].as_string() == "calor")).scalar_one() == len(first_heat)
+
+
+def test_missing_real_heat_source_is_explicit_failure_not_fiction(client, tmp_path):
+    client.app.state.store.settings.heat_file = str(tmp_path / "missing.geojson")
+    response = client.get("/v1/camadas/ambientais")
+    assert response.status_code == 503
+    assert "Landsat" in response.json()["detail"]
+    assert "features" not in response.json()
 
 
 def test_full_mode_never_falls_back_to_sqlite():

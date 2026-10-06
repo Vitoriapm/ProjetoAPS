@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-06",
+  "source": "Direct user confirmation on behalf of the team",
+  "participation": "RESPONSIBILITIES_DEFINED_AND_TOTAL_HOURS_CONFIRMED_BY_TEAM",
+  "hours": {
+    "Vitória": 21,
+    "Alessandro": 23,
+    "Augusto": 30
+  },
+  "total_person_hours": 74,
+  "registration_date": "2026-10-06",
+  "activity_execution_dates": "NOT_INFERRED_FROM_REGISTRATION_DATE",
+  "signatures": "LEFT_BLANK",
+  "ios_apns_and_physical_gps": "TEAM_STATES_MANUAL_COMPLETION_EXECUTION_DATES_AND_IOS_DEVICE_DETAILS_AWAITED",
+  "future_execution_dates_fabricated": false,
+  "captured_at_utc": "2026-10-06T14:41:41.332401+00:00",
+  "ios_apns": "APPROVED_BY_TEAM_DECLARATION_OF_MANUAL_TESTS",
+  "physical_gps_movement": "APPROVED_BY_TEAM_DECLARATION_OF_MANUAL_TESTS",
+  "final_reviews": "COMPLETED_BY_TEAM_DECLARATION",
+  "manual_tests_execution_dates": null,
+  "ios_device": null,
+  "apns_receipt_details": null,
+  "independent_observation": false,
+  "approval_date_is_registration_not_execution": true,
+  "updated_at_utc": "2026-10-06T14:44:35.360632+00:00"
+}

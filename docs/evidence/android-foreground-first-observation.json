@@ -1,0 +1,12 @@
+{
+  "date_of_test": "2026-10-05",
+  "send_evidence": "docs/evidence/android-foreground-push-send.json",
+  "source": "human_user_in_chat",
+  "user_reported_indicator": "Não apareceu o indicador",
+  "user_reported_after_reopening_sheet": "Apenas Push registrado; teste de recebimento...",
+  "foreground_receipt_confirmed": false,
+  "non_delivery_proven": false,
+  "independent_device_observation": false,
+  "usb_available": false,
+  "scope": "The user did not observe the in-app receipt indicator. This is not proof that Firebase did not deliver, and the cause remains unresolved. A separate Flutter test reproduced a stale connection sheet while already open; reopening still did not show the indicator on the phone."
+}

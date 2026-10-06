@@ -58,8 +58,37 @@ Validação estática Compose e AST PowerShell passaram. A suíte final do backe
 
 O PostgreSQL usa replicação assíncrona. A promoção realizada aguardou a LSN com os escritores pausados; não comprova perda zero em falha inesperada. O antigo primário terminou parado e sem rede. Depois da promoção, o novo primário ainda não tem uma nova réplica: é necessário reconstruir o nó antigo de forma controlada, com backup e análise, antes de outra demonstração de redundância PostgreSQL.
 
-Ainda faltam credenciais e execução real do ORS; configuração FCM/APNs e recebimento em aparelhos Android/iOS; fonte espacial real de calor; cache Redis das camadas ambientais (hoje AQI usa PostgreSQL/validade de 15 minutos e calor é fixture); teste em múltiplos hosts e perda abrupta do host. O cenário mínimo da faculdade pode ser apresentado identificando essas limitações e os dados simulados.
+Na conclusão deste ensaio de 03/10, ainda faltavam fonte espacial de calor e cache ambiental. **Atualização de 04/10:** calor agora usa 32 polígonos Landsat reais históricos de 17/09/2025; o cache ambiental passou no cluster com 33 camadas, versões/TTL, duas APIs/WebSockets e fallback/retomada dos seis Redis. Veja [CALOR.md](CALOR.md) e [CACHE_AMBIENTAL.md](CACHE_AMBIENTAL.md); esses ensaios novos não alteram as medições históricas acima. Continuam pendentes credenciais/chamada real ORS, configuração FCM/APNs e recebimento físico Android/iOS, além de ensaio em múltiplos hosts e perda abrupta do host.
 
 Ao encerrar os ensaios, a raiz parou somente `ecopulse-validation`, preservando volumes para liberar memória e atualizar o APK. Demo 8000 e prévia 5173 continuaram abertos. Para voltar ao estado promovido, usar base + cluster + overlay local de portas + `compose.failover.yaml` por último. Não iniciar o antigo primário nem executar a configuração anterior sobre esse projeto. O projeto normal `ecopulse-cluster` é separado e não reutiliza os volumes da validação.
 
 Fontes do comportamento das filas e replicação: [quorum/limite e dead lettering RabbitMQ](https://www.rabbitmq.com/docs/quorum-queues), [standby PostgreSQL 17](https://www.postgresql.org/docs/17/warm-standby.html).
+
+## Carga adicional em 05/10/2026
+
+Executada em projeto novo `ecopulse-load-test`, sem credenciais FCM/ORS e sem
+cadastros de dispositivo, usando a imagem local `ecopulse-backend:fcm-test`. Duas
+APIs, dois workers, alertas, três RabbitMQ e seis Redis compartilharam o mesmo
+notebook. A réplica PostgreSQL não foi iniciada para esta carga.
+
+- 1.000 relatos fictícios HTTP 201: 49,641 s; média 20,14/s, p50 297 ms,
+  p95 969 ms, p99 2.250 ms; concorrência máxima de POSTs: 8.
+- Fase inicial de 500 com alvo de 20/s: vazão efetiva 16,32/s em 30,641 s.
+  Fase seguinte de 500 em rajada: 26,32/s em 19 s. O alvo inicial não foi
+  sustentado integralmente; limite de concorrência e espera HTTP afetaram a fase.
+- 1.000 IDs e vínculos exatos, 20 incidentes com soma de contagens igual a 1.000,
+  1.000 processamentos de risco e de alertas, outbox vazia e conteúdo/versão iguais
+  no cache dos 20 incidentes; convergência conferida em 52,016 s desde o início.
+- 20 reenvios HTTP 200, sem novos relatos, vínculos ou eventos de relato.
+- Zero dispositivos, zero entregas e nenhuma chamada ao provedor. O ambiente
+  do telefone permaneceu ativo. Somente o projeto de carga foi parado ao final,
+  preservando volumes; o script exige banco vazio e não apaga dados para repetir.
+
+Evidência: [load-extended.json](evidence/load-extended.json). Configuração:
+[compose.load-test.yaml](../infra/compose.load-test.yaml), usada depois da base
+e do cluster. Script: [validate_load.py](../scripts/validate_load.py).
+
+Esta rodada maior não mede capacidade máxima ou cargas representativas de
+produção. Não repetiu falhas, não validou WebSocket ou réplica PostgreSQL nesta
+carga e não comprova múltiplos hosts físicos. Os números anteriores de 60
+relatos permanecem como outra execução, sem comparação direta de capacidade.

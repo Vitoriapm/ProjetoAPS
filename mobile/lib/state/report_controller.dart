@@ -44,6 +44,7 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
   final bool enableDeviceServices;
   final Map<String, Report> _reports = {};
   final Set<String> _alertedVersions = {};
+  final Map<String, String> _proximityAlerts = {};
   List<Incident> _incidents = [];
   List<EnvironmentalPoint> _environment = [];
   RouteResult? _route;
@@ -68,6 +69,7 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   StreamSubscription<PositionPoint>? _positionSubscription;
   Timer? _eventDebounce;
+  Timer? _proximityExpiry;
 
   List<Report> get reports {
     final items = _reports.values.toList();
@@ -88,7 +90,10 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
       _reports.values.where((report) => report.isPending).length;
   DateTime? get lastUpdatedAt => _lastUpdatedAt;
   String? get message => _message;
+  String? get proximityMessage =>
+      _proximityAlerts.isEmpty ? null : _proximityAlerts.values.join('\n');
   String get pushStatus => _pushStatus;
+  String? get pushReceipt => _push.lastReceipt;
 
   void _notify() {
     if (!_disposed) notifyListeners();
@@ -520,33 +525,64 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
     final point = _position;
     if (point == null || _disposed) return;
     final now = DateTime.now().toUtc();
-    final nearby = _incidents.where(
-      (incident) =>
-          incident.expiresAt.isAfter(now) &&
-          distanceInMeters(
-                point.latitude,
-                point.longitude,
-                incident.centerLatitude,
-                incident.centerLongitude,
-              ) <=
-              1000,
-    );
-    var changed = false;
-    final messages = <String>[];
+    final nearby = _incidents
+        .where(
+          (incident) =>
+              incident.expiresAt.isAfter(now) &&
+              distanceInMeters(
+                    point.latitude,
+                    point.longitude,
+                    incident.centerLatitude,
+                    incident.centerLongitude,
+                  ) <=
+                  1000,
+        )
+        .toList();
+    final nearbyKeys = {
+      for (final incident in nearby) '${incident.id}:${incident.version}',
+    };
+    final previousCount = _proximityAlerts.length;
+    _proximityAlerts.removeWhere((key, _) => !nearbyKeys.contains(key));
+    var displayChanged = previousCount != _proximityAlerts.length;
+    var logChanged = false;
     for (final incident in nearby) {
       final key = '${incident.id}:${incident.version}';
-      if (_alertedVersions.contains(key)) continue;
-      _alertedVersions.add(key);
-      changed = true;
+      if (_alertedVersions.contains(key) &&
+          !_proximityAlerts.containsKey(key)) {
+        continue;
+      }
+      logChanged = _alertedVersions.add(key) || logChanged;
       final prefix = incident.isDemo ? 'Demonstração: ' : '';
       final reference = point.source == 'gps'
           ? 'a até 1 km de você'
           : 'a até 1 km do ponto selecionado';
-      messages.add(
-        '$prefix${incident.type.label} $reference. Evite a área indicada.',
+      final text =
+          '$prefix${incident.type.label} $reference. Evite a área indicada.';
+      if (_proximityAlerts[key] != text) displayChanged = true;
+      _proximityAlerts[key] = text;
+    }
+    // Refresh messages and route feedback cannot dismiss a proximity warning.
+    // A warning ends when closed, outside the range, expired or removed.
+    if (displayChanged) _notify();
+    _proximityExpiry?.cancel();
+    final visibleExpirations = nearby
+        .where(
+          (incident) => _proximityAlerts.containsKey(
+            '${incident.id}:${incident.version}',
+          ),
+        )
+        .map((incident) => incident.expiresAt);
+    if (visibleExpirations.isNotEmpty) {
+      final firstExpiry = visibleExpirations.reduce(
+        (a, b) => a.isBefore(b) ? a : b,
+      );
+      final remaining = firstExpiry.difference(DateTime.now().toUtc());
+      _proximityExpiry = Timer(
+        remaining.isNegative ? Duration.zero : remaining,
+        () => unawaited(_checkProximity()),
       );
     }
-    if (changed) {
+    if (logChanged) {
       // Keep the last 500 version keys, persisted across app restarts.
       if (_alertedVersions.length > 500) {
         final excess = _alertedVersions
@@ -562,9 +598,6 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
       } catch (_) {
         // Still deduplicate during this session if preferences cannot be written.
       }
-      if (_disposed) return;
-      _message = messages.join('\n');
-      _notify();
     }
   }
 
@@ -683,6 +716,12 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
     _notify();
   }
 
+  void clearProximityMessage() {
+    _proximityAlerts.clear();
+    _proximityExpiry?.cancel();
+    _notify();
+  }
+
   void clearRoute() {
     _route = null;
     _notify();
@@ -694,6 +733,7 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
     _disposed = true;
     if (enableDeviceServices) WidgetsBinding.instance.removeObserver(this);
     _eventDebounce?.cancel();
+    _proximityExpiry?.cancel();
     unawaited(_connectivitySubscription?.cancel());
     unawaited(_positionSubscription?.cancel());
     _realtime.dispose();

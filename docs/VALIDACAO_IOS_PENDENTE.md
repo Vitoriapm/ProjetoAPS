@@ -1,4 +1,6 @@
-# Auditoria iOS e notificações mobile — 03/10/2026
+# Auditoria iOS e notificações mobile
+
+Revisão inicial em 03/10/2026, atualizada em **04/10/2026** para o código final de push. A atualização não inclui compilação ou ensaio em iPhone.
 
 **Estado:** revisão estática dos arquivos concluída; compilação, assinatura, instalação em iPhone e recebimento real de push **não executados**. A revisão foi feita em Windows, sem Mac/Xcode. Não há IPA validado por esta auditoria. As evidências Android executadas pela equipe ficam em [VALIDACAO.md](VALIDACAO.md), que este documento não altera.
 
@@ -17,7 +19,7 @@
 | Entitlements e Push capability | Não há arquivo `.entitlements`, referência `CODE_SIGN_ENTITLEMENTS` nem declaração de Push Notifications em `SystemCapabilities`. O projeto ainda não está habilitado para APNs. |
 | Firebase iOS | `Runner/GoogleService-Info.plist` ausente e sem referência no projeto/resources. Quando obtido, deve ser adicionado ao target Runner no Xcode; copiar para o diretório isoladamente não comprova inclusão no app. |
 
-A única alteração nativa realizada foi acrescentar `fetch` a `UIBackgroundModes`. Não foram inseridos Apple Team ID, certificados, entitlements fictícios ou arquivos Firebase sem credenciais reais.
+Na revisão inicial foi acrescentado `fetch` a `UIBackgroundModes`. A preparação de push de 04/10 acrescentou `FirebaseMessagingAutoInitEnabled=false`, para habilitar geração de token pelo Dart somente após a permissão. Não foram inseridos Apple Team ID, certificados, entitlements fictícios ou arquivos Firebase sem credenciais reais.
 
 ## Swift Package Manager e arquivos gerados
 
@@ -38,26 +40,27 @@ Foram encontrados manifests SwiftPM nos plugins nativos iOS atuais: connectivity
 
 `PushService` está protegido por `FIREBASE_ENABLED`, cujo padrão é `false`. Nesse estado, informa “Push pendente” e não chama a inicialização Firebase pelo Dart. O navegador também retorna com aviso de que push nativo depende das plataformas mobile. A ativação pelo define não cria arquivos, permissões, conta Apple ou credenciais de servidor.
 
-Quando ativado, o serviço inicializa Firebase, solicita permissão, observa renovação do token, eventos em primeiro plano, abertura por toque e mensagem inicial. Registra o token pela sessão de instalação no backend e tenta o registro novamente na retomada. O código usa a configuração nativa para `Firebase.initializeApp()`, sem `firebase_options.dart`; por isso os arquivos nativos reais precisam estar incluídos no build.
+Quando ativado, o serviço inicializa Firebase e solicita permissão uma vez. Tentativas posteriores consultam o estado da permissão, inclusive após autorização nas configurações do aparelho, antes de habilitar geração de token. Observa renovação, eventos em primeiro plano, abertura por toque e mensagem inicial. Registra o token pela sessão de instalação no backend e tenta novamente na retomada/conexão. O registro é serializado e preserva um token renovado durante chamada em andamento; eventos repetidos são deduplicados por caminho no processo atual. O código usa a configuração nativa para `Firebase.initializeApp()`, sem `firebase_options.dart`; por isso os arquivos nativos reais precisam estar incluídos no build.
 
 **Guarda APNs corrigida no Dart:** o serviço verifica `getAPNSToken()` antes de pedir `getToken()` no iOS. Quando APNs ainda não está disponível, mantém os listeners ativos, informa o estado de espera e tenta novamente na retomada. A inicialização usa esse mesmo caminho de registro e mantém a consulta da mensagem inicial. Android não depende da consulta APNs, e Firebase desligado continua sem iniciar o SDK pelo Dart. A ordem segue a [preparação FCM Flutter](https://firebase.google.com/docs/cloud-messaging/flutter/get-started). Method swizzling deve permanecer habilitado para esse fluxo.
 
-Cinco testes isolados em `mobile/test/push_service_test.dart` verificam APNs ausente sem chamada FCM, APNs disponível após nova tentativa, Android sem consulta APNs, FCM ainda indisponível e Firebase desligado. A raiz executou **22 testes Flutter, todos aprovados**, incluindo esses cinco. Eles usam respostas controladas e comprovam a regra do código; **não comprovam registro APNs real, assinatura iOS nem recebimento de push no aparelho**.
+Os **11 testes de push** em `mobile/test/push_service_test.dart` verificam ordem APNs, Firebase desligado, navegador, permissão, retry, renovação durante uma chamada, deduplicação, toque/abertura e descarte. A suíte atual passou com **30 testes Flutter**, e a análise estática não encontrou problemas. Eles usam respostas controladas e comprovam a regra do código; **não comprovam registro APNs real, assinatura iOS nem recebimento de push no aparelho**. Preparo, diagnóstico e prova de envio estão em [PUSH.md](PUSH.md).
 
 Em primeiro plano, `alert=false` e `sound=false` deixam a atualização no app, sem prometer banner do sistema. Não há handler Dart de `onBackgroundMessage`. O backend envia payload com `notification` e `data`; recebimento visual em segundo plano e atualização ao tocar precisam ser testados. Sincronização silenciosa de dados e fila offline com o app encerrado não estão implementadas por esse fluxo. [Estados de recebimento FCM](https://firebase.google.com/docs/cloud-messaging/flutter/receive-messages).
 
 Não anexamos um entitlement APNs genérico ao projeto: ele depende do perfil real. No Xcode, habilitar Push Notifications deve gerar/vincular `aps-environment` compatível com a assinatura e o ambiente de desenvolvimento/produção. [Entitlement APNs da Apple](https://developer.apple.com/documentation/BundleResources/Entitlements/aps-environment).
 
-## Auditoria Android, sem alteração de arquivos
+## Configuração Android revisada
 
 - Namespace e applicationId: `br.edu.ecopulse.ecopulse`, consistentes com a pasta/package da MainActivity.
 - Manifest declara INTERNET, localização FINE/COARSE e POST_NOTIFICATIONS. Há permissão para HTTP local no protótipo. GPS e notificações dependem também da autorização em tempo de execução e do estado do aparelho.
+- A preparação de push inclui canal `ecopulse_alertas`, ícone próprio e geração automática de token/analytics desativada no Manifest. O cliente habilita geração de token após a autorização; o canal pode ser alterado nas configurações do Android pelo usuário.
 - `settings.gradle.kts` declara Google Services 4.5.0 com `apply false`. `app/build.gradle.kts` aplica o plugin somente se `google-services.json` existir. O arquivo não foi encontrado nesta revisão; o APK demo pode funcionar com Firebase desligado, mas isso não valida o build Firebase ativado.
 - FCM precisa de aparelho com serviços Google compatíveis ou emulador com Google APIs. A configuração do app deve ter esse applicationId e pertencer ao mesmo projeto Firebase usado pelas credenciais do backend. [Requisitos FCM por plataforma](https://firebase.google.com/docs/cloud-messaging/flutter/get-started).
 - Recebimento em primeiro plano, segundo plano, após toque, renovação de token e recusa de permissão ainda precisam de ensaio com push real. O status “registrado” indica envio do token ao backend, não prova de uma notificação recebida.
 - Release continua com assinatura de desenvolvimento no Gradle. É suficiente para o cenário acadêmico local previsto; não representa configuração de publicação em loja.
 
-Esta auditoria não mudou Android nem repetiu build/instalação. Use os resultados concretos registrados pela raiz para informar o estado Android.
+Esta revisão documental não substitui build/instalação. Use os resultados concretos de [VALIDACAO.md](VALIDACAO.md) para informar o estado Android.
 
 ## Como desbloquear e validar iOS
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "mode": "trigger",
+  "project": "ecopulse-fcm-test",
+  "device_receipt_verified": false,
+  "broker_retry_injected": false,
+  "status": "PASSED",
+  "report_http": 201,
+  "identical_replay_http": 200,
+  "identical_replay_accepted": true,
+  "inspection": {
+    "health": {
+      "status": "ok",
+      "mode": "full",
+      "fcm_configured_in_api": true
+    },
+    "counts": {
+      "reports": 1,
+      "incidents": 1,
+      "devices": 3,
+      "deliveries": 2
+    },
+    "outbox_pending": 0,
+    "synthetic": {
+      "inside": {
+        "registered": true,
+        "platform_web": true,
+        "token_present": true,
+        "fresh_position": true,
+        "selected_by_current_geofence": true,
+        "delivery_statuses": [
+          "unsupported"
+        ]
+      },
+      "outside": {
+        "registered": true,
+        "platform_web": true,
+        "token_present": true,
+        "fresh_position": true,
+        "selected_by_current_geofence": false,
+        "delivery_statuses": []
+      }
+    },
+    "android": {
+      "registered_count": 1,
+      "token_present_count": 1,
+      "position_present_count": 1,
+      "fresh_position_count": 1,
+      "accuracy_present_count": 0,
+      "selected_by_current_geofence_count": 1,
+      "provider_accepted_count": 1,
+      "delivery_status_counts": {
+        "accepted": 1
+      },
+      "device_receipt_verified": false
+    },
+    "ios_registered_count": 0,
+    "selection_rule": {
+      "device_radius_m": 1000,
+      "incident_influence_m": 200,
+      "default_total_radius_m": 1200,
+      "position_valid_seconds": 3600,
+      "high_severity_required": false
+    },
+    "pipeline": {
+      "fictional_report_present": true,
+      "immutable_report_payload_matches": true,
+      "report_to_incident_links": 1,
+      "incident_report_count": 1,
+      "report_outbox_events": 1,
+      "incident_outbox_events": 1,
+      "related_outbox_published": 2,
+      "risk_processed_count": 1,
+      "alerts_processed_count": 1,
+      "complete": true
+    }
+  }
+}

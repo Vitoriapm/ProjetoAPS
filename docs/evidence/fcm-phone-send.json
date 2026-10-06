@@ -1,0 +1,14 @@
+{
+  "dry_run": false,
+  "provider_accepted": true,
+  "device_receipt_verified": false,
+  "is_demo": true,
+  "event_id": "2809b0e0-7de4-479b-a355-a780b06a600f",
+  "message": "FCM aceitou o envio fictício; registre separadamente a chegada no aparelho.",
+  "sent_at_utc": "2026-10-05T01:54:17.128240+00:00",
+  "dispatch": "direct_fcm_test_script",
+  "geographic_selection_exercised": false,
+  "user_confirmed_background_ready": true,
+  "device_receipt_confirmation_pending": false,
+  "receipt_confirmation_evidence": "fcm-phone-receipt.json"
+}

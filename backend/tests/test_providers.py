@@ -90,7 +90,7 @@ def test_provider_failure_never_removes_avoidance(tmp_path):
     assert len(calls) == 1 and b"avoid_polygons" in calls[0].content
 
 
-def test_open_meteo_is_modelled_real_aqi_heat_stays_simulated(tmp_path):
+def test_open_meteo_is_modelled_aqi_and_landsat_heat_remains_historical(tmp_path):
     repository, config = store(tmp_path)
     config.mode = "full"  # Provider branch only; no infrastructure validation implied.
     def provider(req):
@@ -104,7 +104,8 @@ def test_open_meteo_is_modelled_real_aqi_heat_stays_simulated(tmp_path):
     aqi = collection["features"][0]["properties"]
     assert aqi["value"] == 61 and not aqi["is_demo"]
     assert "modelada" in aqi["source"] and "estação local" in aqi["label"]
-    assert all(x["properties"]["is_demo"] for x in collection["features"][1:])
+    assert all(not x["properties"]["is_demo"] and x["properties"]["observation_type"] == "historic"
+        and "não representa o calor atual" in x["properties"]["label"] for x in collection["features"][1:])
 
 
 def test_aqi_failure_does_not_silently_switch_to_fiction(tmp_path):

@@ -1,0 +1,19 @@
+{
+  "api_key_configured": true,
+  "attempted_at_utc": "2026-10-05T01:57:27.354174Z",
+  "avoided_incidents": 1,
+  "distance_m": 3035.2,
+  "duration_s": 432.8,
+  "endpoints_and_exclusions_validated": true,
+  "exclusion_is_fictitious": true,
+  "live_attempted": true,
+  "live_requested": true,
+  "provider": "OpenRouteService / OpenStreetMap",
+  "real_route": true,
+  "route_points": 46,
+  "source": "OpenRouteService / OpenStreetMap",
+  "status": "passed",
+  "success": true,
+  "test_scope": "Real ORS adapter with a fictitious exclusion; no app/database modification",
+  "updated_at_utc": "2026-10-05T01:57:28.490316Z"
+}

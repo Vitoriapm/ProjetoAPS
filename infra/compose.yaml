@@ -18,6 +18,7 @@ x-application: &application
     ORS_API_KEY: ${ORS_API_KEY:-}
     FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
     ENVIRONMENT_SOURCE: ${ENVIRONMENT_SOURCE:-open-meteo}
+    HEAT_DATASET_FILE: ${HEAT_DATASET_FILE:-}
   volumes:
     - ../secrets:/run/secrets:ro
   depends_on:

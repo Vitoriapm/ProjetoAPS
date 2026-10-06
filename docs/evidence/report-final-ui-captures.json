@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-05",
+  "scope": "UI illustrations for academic report, using actual Flutter screens with controlled FakeApi and MemoryStore data",
+  "platform": "web",
+  "harness": ".runtime/capture_report_route.dart",
+  "real_backend_contacted": false,
+  "real_gps_used": false,
+  "firebase_or_apns_used": false,
+  "real_ors_called": false,
+  "report_submitted": false,
+  "route_values": "simulated, 1600 m / 1200 s / zero avoided zones",
+  "offline_state": "preloaded pending report; unavailable test API; not evidence of native SQLite or reconnect",
+  "images": [
+    {
+      "file": "docs/evidence/report-form-top-web.png",
+      "sha256": "17372679697aecd041d16bf604805757a3e3424629a901169c0a981768e2132d",
+      "size_px": [
+        319,
+        668
+      ]
+    },
+    {
+      "file": "docs/evidence/report-form-bottom-web.png",
+      "sha256": "010973404d746a28d5fc26f104e5df85c9a0eeff4118b9e34ccfdb4cf0352f05",
+      "size_px": [
+        319,
+        668
+      ]
+    },
+    {
+      "file": "docs/evidence/report-route-illustration-web.png",
+      "sha256": "d04c9672dd02c16ea25757ba866b00e8c40d8a5e212f4a69bb640d9896ae4271",
+      "size_px": [
+        319,
+        668
+      ]
+    },
+    {
+      "file": "docs/evidence/report-offline-illustration-web.png",
+      "sha256": "abe339ebbd9c44b2ffcd75a572631def18192e9d934937b9143d5dbc5ea6e64a",
+      "size_px": [
+        319,
+        668
+      ]
+    }
+  ]
+}

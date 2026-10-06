@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from sqlalchemy import select, update, text
 from backend.shared.broker import consume_loop
-from backend.shared.cache import cluster_client, update_cache, CHANNEL
+from backend.shared.cache import cluster_client, update_cache, update_environment_cache
 from backend.shared.config import Settings
 from backend.shared.db import Store, devices, deliveries, processed, incidentes, utc_now, parse_time, iso
 from backend.shared.geo import distance_m
@@ -39,7 +39,7 @@ class FcmAdapter:
         self.settings = settings
         self.app = None
 
-    def send(self, token, event):
+    def send(self, token, event, *, dry_run=False):
         if not self.settings.fcm_credentials:
             raise RuntimeError("FCM não configurado; alerta real não foi enviado")
         if self.app is None:
@@ -57,9 +57,12 @@ class FcmAdapter:
                 if props["is_demo"] else "Há uma ocorrência registrada perto de você.")
         message = messaging.Message(token=token, notification=notification,
             data={"event_id": event["event_id"], "incident_id": props["id"], "version": str(props["version"]), "is_demo": str(props["is_demo"]).lower()},
-            android=messaging.AndroidConfig(ttl=timedelta(seconds=ttl), priority="high"),
-            apns=messaging.APNSConfig(headers={"apns-expiration": str(int(utc_now().timestamp()) + ttl)}))
-        return messaging.send(message, app=self.app)
+            android=messaging.AndroidConfig(ttl=timedelta(seconds=ttl), priority="high",
+                notification=messaging.AndroidNotification(channel_id="ecopulse_alertas", tag=props["id"], icon="ic_notification")),
+            apns=messaging.APNSConfig(headers={"apns-expiration": str(int(utc_now().timestamp()) + ttl),
+                "apns-push-type": "alert", "apns-priority": "10", "apns-collapse-id": props["id"]},
+                payload=messaging.APNSPayload(aps=messaging.Aps(sound="default", thread_id=props["id"]))))
+        return messaging.send(message, app=self.app, dry_run=dry_run)
 
 
 def deliver_alert(store, row, event, adapter):
@@ -107,8 +110,7 @@ async def run():
             if conn.execute(select(processed.c.event_id).where(processed.c.consumer == "alerts", processed.c.event_id == event_id)).first():
                 return
         if evt.tipo == "camada.atualizada":
-            import json
-            await asyncio.to_thread(cache.publish, CHANNEL, json.dumps(payload))
+            await asyncio.to_thread(update_environment_cache, cache, payload)
         elif evt.tipo.startswith("incidente."):
             with store.engine.connect() as conn:
                 current = conn.execute(select(incidentes.c.version, incidentes.c.active).where(incidentes.c.id == str(evt.aggregate_id))).mappings().first()

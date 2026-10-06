@@ -1,0 +1,26 @@
+{
+  "status": "PIPELINE_PENDING",
+  "mode": "outside-trigger",
+  "project": "ecopulse-fcm-test",
+  "checked_at_utc": "2026-10-06T13:38:25.526551+00:00",
+  "is_demo": true,
+  "device_receipt_verified": false,
+  "gps_movement_tested": false,
+  "physical_phones": 1,
+  "position_source_confirmed_by_user": false,
+  "outside_position_source": "gps",
+  "report_http": 201,
+  "replay_http": 200,
+  "inspection": {
+    "report_present": true,
+    "report_to_incident_links": 0,
+    "report_events": 1,
+    "incident_events": 0,
+    "risk_processed": 0,
+    "alerts_processed": 0,
+    "related_outbox_published": 0,
+    "android_excluded_by_current_geofence": false,
+    "android_delivery_statuses": [],
+    "complete": false
+  }
+}

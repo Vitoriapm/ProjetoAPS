@@ -1,0 +1,39 @@
+# Isolated local load project only: ecopulse-load-test.
+# Merge after compose.yaml and compose.cluster.yaml. Never use on phone project.
+x-load-app: &load-app
+  mem_limit: 256m
+  environment:
+    FCM_CREDENTIALS_FILE: ""
+    ORS_API_KEY: ""
+    ENVIRONMENT_SOURCE: fixtures
+  volumes: !override []
+services:
+  api: *load-app
+  api2: *load-app
+  worker: *load-app
+  worker2: *load-app
+  alerts: *load-app
+  db:
+    mem_limit: 256m
+  nginx:
+    ports: !override ["127.0.0.1:8021:8000"]
+    mem_limit: 64m
+  rabbit1:
+    ports: !override ["127.0.0.1:15675:15672"]
+    mem_limit: 512m
+  rabbit2:
+    mem_limit: 512m
+  rabbit3:
+    mem_limit: 512m
+  redis1:
+    mem_limit: 128m
+  redis2:
+    mem_limit: 128m
+  redis3:
+    mem_limit: 128m
+  redis4:
+    mem_limit: 128m
+  redis5:
+    mem_limit: 128m
+  redis6:
+    mem_limit: 128m

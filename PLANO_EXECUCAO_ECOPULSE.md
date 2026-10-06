@@ -8,6 +8,8 @@ Esta revisão integra ao plano todos os requisitos de sistemas distribuídos, fu
 
 A inclusão neste documento significa **Planejado**, não Implementado ou Validado. O estado atual por requisito está em [docs/REQUISITOS.md](docs/REQUISITOS.md), com resultados em [docs/VALIDACAO.md](docs/VALIDACAO.md). Simulação deve ser identificada separadamente e não comprova uma integração real.
 
+**Estado de execução em 05/10:** Firebase Android, conta de serviço e chave ORS foram fornecidos e configurados. O teste direto de push de 04/10 permanece como evidência do APK anterior. No ensaio de 05/10, um relato fictício percorreu o backend full e gerou uma entrega FCM aceita para o Android dentro do raio; o usuário confirmou chegada em segundo plano e abertura por toque no APK atual 1.0.0 (2), sem observação independente do aparelho. A exclusão fora foi verificada somente com cadastro web sintético. O adaptador ORS e a API retornaram rotas válidas, e o usuário confirmou a rota no Android sem informar pontos/valores. Aquisição GPS pontual, offline/reabertura/reenvio e aviso local com pontos manuais também possuem confirmação humana e provas próprias. Essas evidências não alteram os requisitos nem os critérios de aceite abaixo: movimento GPS físico, FCM em primeiro plano, telefone físico fora do raio e iOS/APNs continuam pendentes. O relatório e o roteiro formal Word foram produzidos em 05/10; o registro de atividades e assinaturas da APS deve ser preenchido pela equipe. Detalhes em [docs/VALIDACAO.md](docs/VALIDACAO.md).
+
 ## 1 Matriz de requisitos incorporados
 
 | Requisito | Implementação planejada | Evidência de conclusão |
@@ -113,6 +115,8 @@ Todas as quatro camadas são obrigatórias no app. Exibir origem, horário, vali
 
 **Calor:** usar conjunto geoespacial de áreas de calor com origem e data verificáveis. Uma temperatura meteorológica única não comprova ilha de calor urbana. A identificação de fonte adequada deve ocorrer no primeiro marco.
 
+**Implementação de 04/10:** a fonte escolhida é Landsat 9, aquisição de 17/09/2025, com 32 polígonos de contraste da superfície. O método e a proveniência estão em [docs/CALOR.md](docs/CALOR.md). A interface mostra a data histórica: esse resultado não comprova calor atual nem uma ilha de calor climatológica. AQI/calor possuem versões, TTL e reconstrução no Redis, alimentados por eventos; estado do ensaio em [docs/CACHE_AMBIENTAL.md](docs/CACHE_AMBIENTAL.md).
+
 Fixtures de AQI/calor ficam disponíveis para desenvolver e ensaiar, com o rótulo permanente “Dados simulados para demonstração”. Isso testa a interface e a cadeia de eventos, não comprova monitoramento ambiental real. Se somente simulação for possível, registrar o item real como pendente e conferir sua aceitação na avaliação; não marcar como Validado por existir uma camada fictícia.
 
 **Rotas:** escolher destino no mapa, enviar origem/destino à API e calcular rota que evita polígonos de incidentes ativos. Guardar a chave do provedor no servidor, validar geometrias/limites e testar indisponibilidade, origem dentro de bloqueio e ausência de alternativa. Verificar que o trajeto não intersecta os bloqueios. Não remover exclusões silenciosamente para obter uma resposta. Usar “Rota alternativa evitando ocorrências registradas”. [Opções do OpenRouteService](https://giscience.github.io/openrouteservice/api-reference/endpoints/directions/routing-options).
@@ -124,6 +128,8 @@ Capturar GPS pontualmente ao criar o relato, com permissão, horário e precisã
 WebSocket permite enviar a assinatura/área de interesse e receber confirmação; o servidor envia alterações de incidentes. Reconexão inclui consulta REST para recuperar eventos perdidos. Atualizar continua como apoio, sem substituir a atualização automática.
 
 Push é implementado por FCM/APNs, com registro/renovação de token, seleção geográfica e expiração. Em segundo plano, usar área escolhida ou última localização válida, com horário; não presumir GPS continuamente atualizado. Android e iOS físicos devem receber uma notificação de teste. FCM aceito pelo servidor não comprova recebimento no aparelho. [Configuração FCM para Flutter](https://firebase.google.com/docs/cloud-messaging/flutter/get-started).
+
+Na implementação atual, o full aceita a última posição GPS ou manual com idade de até uma hora. O app registra raio de dispositivo de 1.000 m, somado à influência de 200 m do incidente; o aviso local de 1.000 m é um fluxo distinto. Incidentes ativos de gravidade baixa também podem gerar push. O ensaio de 05/10 comprovou o envio para um Android dentro dessa seleção e sua recepção em segundo plano por confirmação humana; cadastro web sintético fora foi excluído. Isso não substitui testes de movimento GPS, telefone físico fora, primeiro plano e iOS.
 
 Salvar o relato no SQLite antes de enviar. Ao recuperar conectividade com app ativo, sincronizar automaticamente; também retomar ao abrir/voltar ao app. A conectividade é um sinal para tentar: confirmar alcance da API. Tarefas oportunistas de fundo podem ajudar, mas a execução é controlada pelo sistema operacional e não tem prazo imediato garantido.
 
@@ -168,7 +174,15 @@ A equipe informou que não dispõe de Mac nem iPhone. Obter acesso a macOS/Xcode
 
 Na auditoria de 03/10, Docker Desktop foi localizado fora do PATH e o cluster completo executou testes reais de processamento, replicação e falha de nós. Os scripts passaram a localizar essa instalação. Resultados e limites ficam em [docs/VALIDACAO_INFRA.md](docs/VALIDACAO_INFRA.md); a execução no mesmo notebook não comprova sobrevivência à perda do host.
 
-Resolver Firebase/APNs, chave do provedor de rotas e fontes ambientais. Não inserir segredos no código. Eventuais contas, contratações ou equipamentos dependem de acesso providenciado pela equipe. Enquanto isso, mocks identificados permitem construir partes independentes, mantendo as integrações reais como pendentes.
+Firebase/APNs, chave do provedor de rotas e fontes ambientais foram dependências identificadas na fase inicial. Não inserir segredos no código. Eventuais contas, contratações ou equipamentos dependem de acesso providenciado pela equipe. Mocks identificados continuam úteis para ensaios controlados; cada integração real exige evidência própria.
+
+Na fase anterior de preparação, a equipe ainda não possuía Firebase ou chave OpenRouteService; os fluxos foram implementados com scripts e testes controlados, sem comprovar recebimento FCM/APNs ou resposta real ORS naquele momento. A preparação está em [docs/PUSH.md](docs/PUSH.md) e [docs/ROTAS.md](docs/ROTAS.md). A fonte histórica de calor está incluída e não depende dessas contas.
+
+**Evidência histórica de 04/10:** o usuário forneceu a configuração Android e a conta de serviço do mesmo projeto Firebase. OAuth, dry-run FCM e um único envio fictício foram aceitos. No APK anterior, com o app em segundo plano, o usuário confirmou que a notificação chegou e tocar abriu o EcoPulse; [docs/evidence/fcm-phone-receipt.json](docs/evidence/fcm-phone-receipt.json) registra essa fonte humana, sem observação independente. O script de envio mantém `device_receipt_verified=false`, pois não observa o aparelho. Esse ensaio direto não exercitou primeiro plano, GPS, seleção geográfica ou dispatcher full; o ensaio geográfico posterior está documentado ao final deste plano. iOS/APNs permanecem pendentes.
+
+A chave ORS também está configurada. O adaptador real passou evitando um bloqueio fictício em Ribeirão Preto: 3.035,2 m e 432,8 s, conforme [docs/evidence/routes-live.json](docs/evidence/routes-live.json). Após o ajuste de acesso à rede do processo, a API retornou HTTP 200 com os mesmos valores, zero bloqueios ativos e nenhum novo relato; os 18 IDs anteriores foram preservados, conforme [docs/evidence/routes-api-live.json](docs/evidence/routes-api-live.json). O usuário confirmou que a rota apareceu no Android após os passos de origem/destino, conforme [docs/evidence/routes-phone-confirmation.json](docs/evidence/routes-phone-confirmation.json). Essa confirmação é humana, sem observação independente; os pontos e valores do percurso no celular não foram informados. Esses resultados não aprovam integralmente os critérios de push geográfico, proximidade ou duas plataformas.
+
+No ensaio físico posterior, o usuário respondeu “tudo funcionou” ao roteiro de aquisição GPS, salvar um relato fictício offline, reabrir ainda offline e reconectar/reenviar. O banco demo passou de 18 para 19 relatos: um único UUID novo de via obstruída simulada ligado a um incidente com `report_count=1`, sem novo relato duplicado; um Android tinha posição e `accuracy_m` registradas, sem divulgar seus valores. A identificação usou o único novo registro em relação à baseline, pois a descrição não coincidiu exatamente com o marcador sugerido. [docs/evidence/android-physical-gps-offline.json](docs/evidence/android-physical-gps-offline.json) separa a confirmação humana da conferência do banco; não houve observação independente da tela, coordenadas ou precisão. Esse teste não incluiu movimento GPS ou FCM. As provas posteriores de aviso local manual e push geográfico full estão ao final do plano; movimento GPS físico, FCM em primeiro plano, telefone físico fora do raio, iOS/APNs permanecem pendentes. O relatório Word foi produzido; faltam o preenchimento efetivo da ficha e o ensaio.
 
 ## 12 Testes, documentação e apresentação
 
@@ -197,3 +211,33 @@ Relatório conforme a seção VI da proposta e manual UNIP: capa; índice; objet
 Demonstração: GPS e relato; persistência offline/reinício; sincronização; processamento pelo broker; atualização no segundo aparelho e push; aviso de proximidade; camadas AQI/calor/obstrução; rota desviada; interrupção de worker/nó e recuperação; retry/DLQ e convergência do cache.
 
 Entregar código, instruções, configurações de exemplo, migrações, fixtures identificadas, scripts de teste, evidências, APK Android, build iOS instalado/testado e vídeo de apoio. Registrar cada requisito como Validado somente depois da evidência correspondente; instalações e arquivos gerados não significam que o app completo está pronto.
+
+
+## Validação de proximidade em 05/10/2026
+
+A falha que apagava a faixa após sincronizar foi reproduzida e corrigida: aviso independente, fechamento próprio e expiração offline. Passaram 45 testes Flutter, análise estática e cenário no emulador Android com menu real do mapa/SQLite e API fake isolada. Saída/retorno, reabertura offline, nova versão e vencimento foram conferidos. O APK Firebase versão 1.0.0 (2) tem pacote/assinatura compatíveis para atualização. [PROXIMIDADE.md](docs/PROXIMIDADE.md) registra os limites: o usuário confirmou instalação desse build e aviso local com pontos manuais no mapa. Esse aviso local não comprova movimento GPS físico ou FCM; o teste geográfico separado está abaixo. Os critérios da proposta permanecem integrais.
+
+## Ensaio geográfico full em 05/10/2026
+
+No projeto isolado `ecopulse-fcm-test`, foi criado **um único relato fictício**, em uma grade de 0,01° próxima da referência manual, sem publicar coordenadas do celular. O POST retornou 201 e o replay idêntico 200. Ficaram um relato, um incidente, um evento de cada tipo na outbox, ambos publicados, e um processamento de risco e um de alertas. O Android com posição recente dentro do raio foi selecionado e teve uma entrega aceita pelo FCM. A prova do pipeline e da seleção está em [docs/evidence/geographic-push.json](docs/evidence/geographic-push.json).
+
+O ensaio tinha três cadastros: Android físico dentro, web sintético dentro e web sintético fora. O web dentro ficou `unsupported`, sem chamada ao provedor; o web fora não foi selecionado nem teve entrega. Houve duas linhas de entrega (`accepted` e `unsupported`), com **somente um alerta enviado ao celular**. Não foram injetadas falhas/retries neste ensaio; as evidências anteriores do broker permanecem separadas.
+
+Após confirmar o app em segundo plano, o usuário informou **“Recebi e o app abriu ao tocar”** no APK atual. [docs/evidence/geographic-push-phone-receipt.json](docs/evidence/geographic-push-phone-receipt.json) registra `human_user_in_chat`, sem observação independente do aparelho. Essa confirmação é separada do aceite FCM. O cenário valida o backend full e o recebimento Android dentro do raio em segundo plano; não testa um segundo telefone físico fora, GPS em movimento, FCM em primeiro plano ou iOS/APNs. Esses limites e o relatório formal APS permanecem pendentes.
+
+## Atualização do escopo em 06/10/2026
+
+Push em primeiro plano confirmado pelo usuário na versão +3. O mesmo Android,
+em etapa distinta com GPS recente e APK +4 instalado conforme confirmação humana,
+foi excluído fora do raio; risco e alertas processaram o relato fictício e não
+criaram entrega para ele. O usuário confirmou nenhum novo recebimento. Carga
+isolada de 1.000 relatos, cache coerente e replay passaram. O percurso físico
+por GPS foi dispensado pela equipe sem execução; sua tarefa está encerrada como
+dispensada, mantendo o limite de validação. iOS/APNs e múltiplos hosts seguem
+adiados. As etapas restantes são conferência manual dos registros acadêmicos,
+assinaturas e ensaio presencial de dez minutos. Não foram preenchidas horas reais
+sem informação dos integrantes. Evidências em TESTES_FINAIS_ANDROID.md.
+
+
+
+Atualização documental em 06/10/2026: responsabilidades definitivas e horas confirmadas pela equipe (Vitória 21 h, Alessandro 23 h, Augusto 30 h). A equipe também declarou aprovação manual de iOS/APNs e do deslocamento físico por GPS, além da conclusão das revisões finais. Esses resultados são confirmações humanas, sem novos logs ou observação independente; datas de execução e detalhes do iPhone/APNs não foram informados. O relatório conserva as datas das provas técnicas e mantém assinaturas em branco. Registro: docs/evidence/academic-team-confirmation-20261006.json.

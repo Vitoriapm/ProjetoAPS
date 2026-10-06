@@ -1,0 +1,105 @@
+{
+  "status": "PASSED",
+  "project": "ecopulse-load-test",
+  "started_at_utc": "2026-10-05T19:41:03.465412+00:00",
+  "reports": 1000,
+  "sustained_target_rps": 20,
+  "maximum_concurrent_posts": 8,
+  "geographic_groups": 20,
+  "is_demo": true,
+  "physical_hosts": 1,
+  "providers_contacted": false,
+  "phone_project_modified": false,
+  "postgres_replication_tested": false,
+  "websocket_receipt_tested": false,
+  "limitation": "Bounded local synthetic load; not a capacity ceiling, production SLA or proof of multiple-host resilience.",
+  "before": {
+    "counts": {
+      "reports": 0,
+      "incidents": 0,
+      "devices": 0,
+      "links": 0,
+      "deliveries": 0
+    },
+    "expected_ids_exact": true,
+    "expected_link_ids_exact": true,
+    "incident_report_count_sum": 0,
+    "outbox_pending": 0,
+    "report_events": 0,
+    "incident_events": 0,
+    "risk_processed": 0,
+    "alerts_processed": 0,
+    "cache_equal_count": 0,
+    "cache_all_equal": true,
+    "fcm_credentials_disabled": true,
+    "ors_disabled": true,
+    "redis_nodes": 6,
+    "redis_slots": 16384,
+    "postgis_used": true
+  },
+  "sustained": {
+    "requests": 500,
+    "seconds": 30.641,
+    "requests_per_second": 16.32,
+    "http_statuses": {
+      "201": 500
+    },
+    "p50_ms": 313.0,
+    "p95_ms": 1328.0,
+    "p99_ms": 2453.0
+  },
+  "burst": {
+    "requests": 500,
+    "seconds": 19.0,
+    "requests_per_second": 26.32,
+    "http_statuses": {
+      "201": 500
+    },
+    "p50_ms": 265.0,
+    "p95_ms": 656.0,
+    "p99_ms": 1672.0
+  },
+  "entry": {
+    "requests": 1000,
+    "seconds": 49.641,
+    "requests_per_second": 20.14,
+    "http_statuses": {
+      "201": 1000
+    },
+    "p50_ms": 297.0,
+    "p95_ms": 969.0,
+    "p99_ms": 2250.0
+  },
+  "convergence_seconds_from_start": 52.016,
+  "after": {
+    "counts": {
+      "reports": 1000,
+      "incidents": 20,
+      "devices": 0,
+      "links": 1000,
+      "deliveries": 0
+    },
+    "expected_ids_exact": true,
+    "expected_link_ids_exact": true,
+    "incident_report_count_sum": 1000,
+    "outbox_pending": 0,
+    "report_events": 1000,
+    "incident_events": 1000,
+    "risk_processed": 1000,
+    "alerts_processed": 1000,
+    "cache_equal_count": 20,
+    "cache_all_equal": true,
+    "fcm_credentials_disabled": true,
+    "ors_disabled": true,
+    "redis_nodes": 6,
+    "redis_slots": 16384,
+    "postgis_used": true
+  },
+  "replay": {
+    "requests": 20,
+    "http_200": 20,
+    "counts_unchanged": true
+  },
+  "finished_at_utc": "2026-10-05T19:42:00.278883+00:00",
+  "backend_source_sha256": "9ba44e27b819225e9ac18d7810901d4aaf1331206944ff60fb342bd4a59f2a99"
+}

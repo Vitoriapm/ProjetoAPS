@@ -1,0 +1,11 @@
+{
+  "checked_at_utc": "2026-10-06T13:37:32.565819+00:00",
+  "reported_installed_version_code": 4,
+  "phone_installation_confirmed_by_user": true,
+  "source": "human_user_in_chat",
+  "independent_device_inspection": false,
+  "outside_test_triggered": false,
+  "outside_test_preparation": "AWAITING_USER_GPS_REFRESH_AND_APP_VISIBLE",
+  "preparation_reason": "Read-only backend inspection confirms registration and a position outside the reference geofence, but the stored position is older than 120 seconds.",
+  "new_notifications_sent": 0
+}

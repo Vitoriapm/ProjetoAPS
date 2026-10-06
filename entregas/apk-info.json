@@ -2,10 +2,27 @@
   "application": "EcoPulse",
   "platform": "Android",
   "build": "debug, assinatura de desenvolvimento",
-  "built_at_local": "2026-10-03 23:04 America/Sao_Paulo",
-  "size_bytes": 201527643,
-  "sha256": "4136307f519d0595fb1067b97e53fa9119f750cdf76ae15b22f0334838a05b75",
+  "built_at_local": "2026-10-05 00:21 America/Sao_Paulo",
+  "size_bytes": 182276872,
+  "sha256": "cc9016a678303740e1a798d408c18b3546209c73dc4e94d6ab3d66f27e0e0e91",
   "default_api_url": "http://10.0.2.2:8000",
   "physical_device_setup": "Conexão e informações: usar IP local do computador na mesma rede",
-  "firebase_enabled": false
+  "firebase_enabled": false,
+  "version_name": "1.0.0",
+  "version_code": 2,
+  "proximity_fix_included": true,
+  "flutter_tests_passed": 45,
+  "native_proximity_scenario_passed": true,
+  "new_build_launcher_smoke_repeated": false,
+  "previous_build": {
+    "application": "EcoPulse",
+    "platform": "Android",
+    "build": "debug, assinatura de desenvolvimento",
+    "built_at_local": "2026-10-04 15:24 America/Sao_Paulo",
+    "size_bytes": 201527721,
+    "sha256": "31e62c1f3caecb503be840329a42f3ef720d76479cf5004a71fbe85a5f751474",
+    "default_api_url": "http://10.0.2.2:8000",
+    "physical_device_setup": "Conexão e informações: usar IP local do computador na mesma rede",
+    "firebase_enabled": false
+  }
 }

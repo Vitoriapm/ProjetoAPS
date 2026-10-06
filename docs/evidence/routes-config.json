@@ -1,0 +1,9 @@
+{
+  "api_key_configured": false,
+  "attempted_at_utc": "2026-10-04T17:54:30.308085Z",
+  "live_attempted": false,
+  "live_requested": true,
+  "provider": "OpenRouteService / OpenStreetMap",
+  "status": "awaiting_ors_key",
+  "test_scope": "Real ORS adapter with a fictitious exclusion; no app/database modification"
+}
