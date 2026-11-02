@@ -6,7 +6,7 @@ from datetime import timedelta
 import aio_pika
 from pydantic import ValidationError
 from sqlalchemy import select, update
-from .db import outbox
+from .db import outbox, active_outbox_routes
 
 log = logging.getLogger(__name__)
 EXCHANGE = "ecopulse.events"
@@ -36,8 +36,6 @@ async def topology(channel, settings):
             "x-overflow": "reject-publish"})
         route = "incidente.#" if name == "ecopulse.alerts" else f"relato.{name.rsplit('.', 1)[1]}"
         await queue.bind(exchange, route)
-        if name == "ecopulse.alerts":
-            await queue.bind(exchange, "camada.atualizada")
         await channel.declare_queue(name + ".retry", durable=True, arguments={
             **quorum, "x-dead-letter-exchange": "", "x-overflow": "reject-publish",
             "x-dead-letter-routing-key": name})
@@ -53,7 +51,7 @@ async def outbox_once(store, exchange):
     # Keep row locks until broker confirmation + database commit. If a crash
     # occurs after confirmation, a repeat is harmless to idempotent consumers.
     with store.transaction() as conn:
-        stmt = select(outbox).where(outbox.c.published.is_(False)).order_by(outbox.c.created_at).limit(30)
+        stmt = select(outbox).where(outbox.c.published.is_(False), active_outbox_routes()).order_by(outbox.c.created_at).limit(30)
         if store.pg:
             stmt = stmt.with_for_update(skip_locked=True)
         rows = list(conn.execute(stmt).mappings())

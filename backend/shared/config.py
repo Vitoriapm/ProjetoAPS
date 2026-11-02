@@ -15,8 +15,6 @@ class Settings:
     shard_count: int = field(default_factory=lambda: int(os.getenv("SHARD_COUNT", "4")))
     quorum_size: int = field(default_factory=lambda: int(os.getenv("RABBIT_QUORUM_SIZE", "1")))
     data_dir: str = field(default_factory=lambda: os.getenv("DATA_DIR", str(Path(__file__).resolve().parents[1] / "data")))
-    environment_source: str = field(default_factory=lambda: os.getenv("ENVIRONMENT_SOURCE", "open-meteo"))
-    heat_file: str = field(default_factory=lambda: os.getenv("HEAT_DATASET_FILE", ""))
     session_hours: int = 24 * 30
     influence_m: int = 200
     collaborative_window_s: int = 600

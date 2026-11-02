@@ -9,8 +9,6 @@ x-cluster-environment: &cluster-environment
   DATA_DIR: /app/data
   FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
   ORS_API_KEY: ${ORS_API_KEY:-}
-  ENVIRONMENT_SOURCE: ${ENVIRONMENT_SOURCE:-open-meteo}
-  HEAT_DATASET_FILE: ${HEAT_DATASET_FILE:-}
 
 x-cluster-application: &cluster-application
   image: ecopulse-backend:${ECOPULSE_IMAGE_TAG:-local}

@@ -50,7 +50,7 @@ class UiController extends ReportController {
 }
 
 void main() {
-  testWidgets('Offline report remains visible at a narrow mobile size', (
+  testWidgets('Offline reports use only flood and road filters at mobile size', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(360, 800);
@@ -65,15 +65,46 @@ void main() {
       type: ReportType.obstruction,
       isDemo: true,
     );
+    await controller.submitReport(
+      latitude: -21.178,
+      longitude: -47.811,
+      severity: Severity.medium,
+      type: ReportType.flood,
+    );
     await tester.pumpWidget(
       EcoPulseApp(controller: controller, initializeController: false),
     );
-    expect(find.textContaining('relato salvo no aparelho'), findsOneWidget);
+    expect(find.textContaining('relatos salvos no aparelho'), findsOneWidget);
     expect(find.textContaining('Simulação acadêmica'), findsOneWidget);
+    expect(find.byType(FilterChip), findsNWidgets(2));
+    expect(find.widgetWithText(FilterChip, 'Alagamento'), findsOneWidget);
+    expect(find.widgetWithText(FilterChip, 'Vias'), findsOneWidget);
+    expect(find.text('Ar'), findsNothing);
+    expect(find.text('Calor'), findsNothing);
     await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
     expect(find.text('Via obstruída'), findsOneWidget);
-    expect(find.textContaining('Salvo • aguardando envio'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Alagamento'), findsOneWidget);
+    expect(find.textContaining('Salvo • aguardando envio'), findsNWidgets(2));
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Vias'));
+    await tester.pumpAndSettle();
+    expect(find.text('Via obstruída'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Alagamento'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Alagamento'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, 'Alagamento'), findsNothing);
+    expect(find.text('Ainda não há relatos por aqui.'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Vias'));
+    await tester.pumpAndSettle();
+    expect(find.text('Via obstruída'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Alagamento'), findsNothing);
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Alagamento'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, 'Alagamento'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();

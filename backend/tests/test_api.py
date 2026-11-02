@@ -1,8 +1,14 @@
+import asyncio
+import sqlite3
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 from uuid import uuid4
+from sqlalchemy import select, text
 from fastapi.testclient import TestClient
 from backend.api.main import create_app
 from backend.shared.config import Settings
-from backend.shared.db import iso, utc_now
+from backend.shared.broker import outbox_once
+from backend.shared.db import iso, utc_now, outbox
 import pytest
 
 
@@ -74,44 +80,41 @@ def test_websocket_subscribe_ping_and_update_second_client(client):
         assert event["type"] == "incidente.criado" and event["version"] == 1
 
 
-def test_demo_labels_aqi_fixture_and_real_historical_heat_separately(client):
-    features = client.get("/v1/camadas/ambientais").json()["features"]
-    assert {x["properties"]["kind"] for x in features} == {"aqi", "calor"}
-    aqi = next(x for x in features if x["properties"]["kind"] == "aqi")
-    heat = [x for x in features if x["properties"]["kind"] == "calor"]
-    assert aqi["properties"]["is_demo"] and "simulados" in aqi["properties"]["label"]
-    assert heat and all(not x["properties"]["is_demo"]
-        and "Histórico" in x["properties"]["label"] for x in heat)
-
-
-def test_explicit_fixtures_never_claim_real_measurements(client):
-    client.app.state.store.settings.environment_source = "fixtures"
-    features = client.get("/v1/camadas/ambientais").json()["features"]
-    assert all(x["properties"]["is_demo"] and "simulados" in x["properties"]["label"] for x in features)
-
-
-def test_repeated_read_preserves_historical_heat_versions_and_cache_deadline(client):
-    first = client.get("/v1/camadas/ambientais").json()["features"]
-    second = client.get("/v1/camadas/ambientais").json()["features"]
-    first_heat = {x["id"]: x for x in first if x["properties"]["kind"] == "calor"}
-    second_heat = {x["id"]: x for x in second if x["properties"]["kind"] == "calor"}
-    assert first_heat == second_heat
-    assert all(x["properties"]["updated_at"].startswith("2025-09-17") for x in first_heat.values())
-    from sqlalchemy import select, func
-    from backend.shared.db import outbox
-    with client.app.state.store.engine.connect() as connection:
-        assert connection.execute(select(func.count()).select_from(outbox).where(
-            outbox.c.event["payload"]["properties"]["kind"].as_string() == "calor")).scalar_one() == len(first_heat)
-
-
-def test_missing_real_heat_source_is_explicit_failure_not_fiction(client, tmp_path):
-    client.app.state.store.settings.heat_file = str(tmp_path / "missing.geojson")
-    response = client.get("/v1/camadas/ambientais")
-    assert response.status_code == 503
-    assert "Landsat" in response.json()["detail"]
-    assert "features" not in response.json()
-
-
 def test_full_mode_never_falls_back_to_sqlite():
     with pytest.raises(ValueError, match="PostgreSQL"):
         Settings(mode="full", database_url="sqlite:///:memory:", jwt_secret="x" * 32).validate()
+
+
+
+def test_retired_layers_preserve_existing_data_without_blocking_reports_or_outbox(tmp_path):
+    database = tmp_path / "existing.db"
+    # An installation upgrading from the old schema keeps every saved row.
+    with sqlite3.connect(database) as connection:
+        connection.execute("CREATE TABLE observacoes_ambientais (id VARCHAR(80) PRIMARY KEY, data JSON NOT NULL)")
+        connection.execute("INSERT INTO observacoes_ambientais VALUES (?, ?)", ("legacy", '{"saved":true}'))
+    settings = Settings(mode="demo", database_url="sqlite:///" + str(database))
+    retired_id = str(uuid4())
+    with TestClient(create_app(settings)) as client:
+        store = client.app.state.store
+        with store.transaction() as connection:
+            connection.execute(outbox.insert().values(id=retired_id, route="camada.atualizada",
+                event={"legacy": True}, published=False, created_at=iso(utc_now())))
+        assert client.get("/v1/camadas/ambientais").status_code == 404
+        assert client.post("/v1/relatos", json=payload(), headers=headers(client)).status_code == 201
+        assert len(client.get("/v1/relatos").json()) == 1
+        assert len(client.get("/v1/incidentes/ativos").json()["features"]) == 1
+        health = client.get("/health").json()
+        assert health["status"] == "ok" and health["outbox_pending"] == 2
+        assert set(health["configuration"]) == {"shards", "fcm_configured", "routes_configured"}
+
+        exchange = SimpleNamespace(publish=AsyncMock(return_value=True))
+        assert asyncio.run(outbox_once(store, exchange)) == 2
+        routes = [call.kwargs["routing_key"] for call in exchange.publish.call_args_list]
+        assert any(route.startswith("relato.") for route in routes)
+        assert "incidente.criado" in routes
+        assert client.get("/health").json()["outbox_pending"] == 0
+        with store.engine.connect() as connection:
+            assert connection.execute(text("SELECT data FROM observacoes_ambientais WHERE id='legacy'")).scalar_one() == '{"saved":true}'
+            retired = connection.execute(select(outbox).where(outbox.c.id == retired_id)).mappings().one()
+            assert retired["published"] is False and retired["event"] == {"legacy": True}
+            assert len(connection.execute(select(outbox)).all()) == 3

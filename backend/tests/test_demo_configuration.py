@@ -23,16 +23,13 @@ def test_dotenv_provider_configuration_reaches_demo_without_modifying_files(isol
     root = isolated_project
     path = root / ".env"
     content = ('# local test values\nORS_API_KEY="test-ors-key"\n'
-        'FCM_CREDENTIALS_FILE=/run/secrets/fcm.json\nENVIRONMENT_SOURCE=fixtures\n'
-        'HEAT_DATASET_FILE=backend/datasets/custom.geojson\n'
+        'FCM_CREDENTIALS_FILE=/run/secrets/fcm.json\n'
         'DATABASE_URL=postgresql+psycopg://test-full-db/test\nJWT_SECRET=full-test-secret\n')
     path.write_text(content, encoding="utf-8")
     before = path.read_bytes()
     settings = run_demo.demo_settings()
     assert settings.ors_key == "test-ors-key"
     assert settings.fcm_credentials == str((root / "secrets/fcm.json").resolve())
-    assert settings.environment_source == "fixtures"
-    assert settings.heat_file == str((root / "backend/datasets/custom.geojson").resolve())
     with TestClient(run_demo.create_demo_app()) as client:
         health = client.get("/health").json()
         assert health["status"] == "ok" and health["mode"] == "demo"
@@ -44,11 +41,10 @@ def test_dotenv_provider_configuration_reaches_demo_without_modifying_files(isol
 
 @pytest.mark.parametrize("override", ["process-key", ""])
 def test_explicit_process_provider_value_has_precedence_including_disable(isolated_project, monkeypatch, override):
-    (isolated_project / ".env").write_text("ORS_API_KEY=dotenv-key\nENVIRONMENT_SOURCE=fixtures\n", encoding="utf-8")
+    (isolated_project / ".env").write_text("ORS_API_KEY=dotenv-key\n", encoding="utf-8")
     monkeypatch.setenv("ORS_API_KEY", override)
     settings = run_demo.demo_settings()
     assert settings.ors_key == override
-    assert settings.environment_source == "fixtures"
 
 
 def test_full_environment_cannot_redirect_demo_database_or_infrastructure(isolated_project, monkeypatch):
@@ -89,7 +85,6 @@ def test_fcm_path_resolves_to_host_file_without_copying_or_reading_credentials(i
 def test_missing_dotenv_preserves_offline_demo_defaults(isolated_project):
     settings = run_demo.demo_settings()
     assert settings.ors_key == "" and settings.fcm_credentials == ""
-    assert settings.environment_source == "open-meteo" and settings.heat_file == ""
     assert not (isolated_project / ".env").exists()
 
 

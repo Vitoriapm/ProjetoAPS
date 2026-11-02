@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.check_integration_config import project_environment  # noqa: E402
 from backend.shared.config import Settings  # noqa: E402
 
-PROVIDER_KEYS = ("ORS_API_KEY", "FCM_CREDENTIALS_FILE", "ENVIRONMENT_SOURCE", "HEAT_DATASET_FILE")
+PROVIDER_KEYS = ("ORS_API_KEY", "FCM_CREDENTIALS_FILE")
 INFRASTRUCTURE_KEYS = ("ECOPULSE_MODE", "DATABASE_URL", "DATA_DIR", "JWT_SECRET", "AMQP_URLS",
     "REDIS_CLUSTER_URLS", "SHARD_COUNT", "RABBIT_QUORUM_SIZE", "POSTGRES_PASSWORD",
     "REPLICATION_PASSWORD", "RABBIT_PASSWORD", "RABBIT_ERLANG_COOKIE", "REDIS_PASSWORD")
@@ -43,9 +43,7 @@ def demo_settings():
     return Settings(mode="demo", database_url="sqlite:///" + (data_dir / "ecopulse-demo.db").as_posix(),
         data_dir=str(data_dir), jwt_secret="", amqp_urls=[], redis_urls=[], shard_count=4,
         quorum_size=1, ors_key=providers.get("ORS_API_KEY", ""),
-        fcm_credentials=local_provider_file(providers.get("FCM_CREDENTIALS_FILE", "")),
-        environment_source=providers.get("ENVIRONMENT_SOURCE", "open-meteo"),
-        heat_file=local_provider_file(providers.get("HEAT_DATASET_FILE", ""))).validate()
+        fcm_credentials=local_provider_file(providers.get("FCM_CREDENTIALS_FILE", ""))).validate()
 
 
 @contextmanager

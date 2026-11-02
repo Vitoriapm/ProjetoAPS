@@ -2,7 +2,7 @@
 
 Entregar até **30/10/2026** um protótipo acadêmico do EcoPulse para **Android e iOS**, com demonstração em **Ribeirão Preto** e trabalho dividido entre três desenvolvedores.
 
-Esta revisão integra ao plano todos os requisitos de sistemas distribuídos, funcionalidades mobile e tecnologias confirmados pelo usuário. A referência é [Proposta_APS_DSD_EcoPulse.docx](<C:/Users/usuario/Desktop/APS APP/Proposta_APS_DSD_EcoPulse.docx>), especialmente as seções III, IV e V. Substitui a versão que previa somente uma API com SQLite no servidor.
+Escopo revisado em **02/11/2026**: o usuário solicitou retirar Ar e Calor. O aplicativo mantém os relatos de Alagamento e Vias, rotas e alertas. O cronograma e os resultados de outubro abaixo permanecem como histórico; esta revisão alinha as funcionalidades atuais. A referência é [Proposta_APS_DSD_EcoPulse.docx](<C:/Users/usuario/Desktop/APS APP/Proposta_APS_DSD_EcoPulse.docx>), especialmente as seções III, IV e V. Substitui a versão que previa somente uma API com SQLite no servidor.
 
 **Diretriz:** manter duas telas principais, linguagem clara e visual discreto, com a arquitetura necessária para demonstrar os requisitos da disciplina. A simplicidade será aplicada à interface, às regras e ao tamanho da demonstração. Todos os itens da matriz abaixo fazem parte da entrega; GPS, WebSocket e push deixam de ser opcionais.
 
@@ -23,8 +23,6 @@ A inclusão neste documento significa **Planejado**, não Implementado ou Valida
 | Cache e consistência eventual | Redis Cluster; PostgreSQL/PostGIS como estado principal | Banco, cache e clientes convergem para o mesmo ID e versão |
 | Alagamentos | Relatos e zonas de influência no mapa | Geometria, legenda e horário apresentados |
 | Vias obstruídas | Categoria de relato e camada própria | Via/trecho sinalizado e considerado no cálculo de rota |
-| Qualidade do ar | Camada AQI com escala, origem e validade | Consulta da fonte e apresentação rastreável |
-| Ilhas de calor | Camada geográfica de calor com origem, data e legenda | Áreas apresentadas; simulações identificadas |
 | Relato colaborativo | Validação, GPS pontual e metadados | Captura automática e fallback quando a permissão é negada |
 | Proximidade e roteamento | Entrada no raio do risco e rota evitando incidentes conhecidos | Alerta de proximidade e trajeto sem interseção com bloqueio |
 | Offline-first | SQLite local, fila persistente e envio ao recuperar conexão | Reinício não perde pendências; reconexão inicia sincronização |
@@ -36,7 +34,7 @@ A inclusão neste documento significa **Planejado**, não Implementado ou Valida
 
 Usar cores discretas, componentes nativos do Flutter, fonte padrão legível, ícones comuns e textos em português. Evitar dashboards, estatísticas decorativas, animações elaboradas e excesso de telas.
 
-**Tela principal:** mapa de Ribeirão Preto; seleção das camadas Alagamentos, Obstruções, Ar e Calor; legenda; lista acessível de ocorrências; indicador de pendências e botão Reportar. Detalhes, preferências de alerta, configuração de servidor e seleção de destino ficam em painéis pequenos sobre essa tela.
+**Tela principal:** mapa de Ribeirão Preto; seleção das camadas Alagamento e Vias; legenda; lista acessível de ocorrências; indicador de pendências e botão Reportar. Detalhes, preferências de alerta, configuração de servidor e seleção de destino ficam em painéis pequenos sobre essa tela.
 
 **Tela de relato:** tipo Alagamento ou Via obstruída, gravidade baixa/média/alta, descrição opcional e posição preenchida por GPS. Permitir corrigir o ponto manualmente. Mostrar origem e horário da posição quando necessário.
 
@@ -107,17 +105,9 @@ Regra inicial de engenharia, configurável: três instalações diferentes em de
 
 Um relato isolado pode aparecer com estado Relatado. A zona exibida é a influência definida pela regra; um círculo didático não é a extensão medida de uma inundação. Gravidade é informada pelo usuário. Relatos antigos sincronizados depois da janela não geram risco atual indevido. Expiração não comprova que a via voltou ao normal.
 
-## 7 Camadas ambientais e roteamento
+## 7 Ocorrências e roteamento
 
-Todas as quatro camadas são obrigatórias no app. Exibir origem, horário, validade e legenda. Relatos incluem alagamento e via obstruída; manchas/zonas refletem a regra documentada.
-
-**AQI:** implementar um adaptador para uma fonte verificada que atenda Ribeirão Preto, com escala explícita. Open-Meteo Air Quality pode ser avaliado como fonte de dados modelados; informar o modelo/origem e não rotular seus resultados como medição de uma estação local. [Documentação da Air Quality API](https://open-meteo.com/en/docs/air-quality-api).
-
-**Calor:** usar conjunto geoespacial de áreas de calor com origem e data verificáveis. Uma temperatura meteorológica única não comprova ilha de calor urbana. A identificação de fonte adequada deve ocorrer no primeiro marco.
-
-**Implementação de 04/10:** a fonte escolhida é Landsat 9, aquisição de 17/09/2025, com 32 polígonos de contraste da superfície. O método e a proveniência estão em [docs/CALOR.md](docs/CALOR.md). A interface mostra a data histórica: esse resultado não comprova calor atual nem uma ilha de calor climatológica. AQI/calor possuem versões, TTL e reconstrução no Redis, alimentados por eventos; estado do ensaio em [docs/CACHE_AMBIENTAL.md](docs/CACHE_AMBIENTAL.md).
-
-Fixtures de AQI/calor ficam disponíveis para desenvolver e ensaiar, com o rótulo permanente “Dados simulados para demonstração”. Isso testa a interface e a cadeia de eventos, não comprova monitoramento ambiental real. Se somente simulação for possível, registrar o item real como pendente e conferir sua aceitação na avaliação; não marcar como Validado por existir uma camada fictícia.
+O mapa oferece os filtros Alagamento e Vias. Exibir tipo, gravidade, horário, legenda e relatos agrupados; as zonas de influência seguem a regra documentada. Os relatos de demonstração permanecem identificados como simulação acadêmica.
 
 **Rotas:** escolher destino no mapa, enviar origem/destino à API e calcular rota que evita polígonos de incidentes ativos. Guardar a chave do provedor no servidor, validar geometrias/limites e testar indisponibilidade, origem dentro de bloqueio e ausência de alternativa. Verificar que o trajeto não intersecta os bloqueios. Não remover exclusões silenciosamente para obter uma resposta. Usar “Rota alternativa evitando ocorrências registradas”. [Opções do OpenRouteService](https://giscience.github.io/openrouteservice/api-reference/endpoints/directions/routing-options).
 
@@ -137,11 +127,11 @@ Não apagar pendências ao atualizar: mesclar por UUID. Timeout, GET vazio, rein
 
 ## 9 Contratos de API e eventos
 
-Definir no primeiro marco: POST /v1/relatos; GET /v1/incidentes/ativos; GET /v1/camadas/ambientais; POST /v1/rotas; PUT /v1/dispositivos/push; atualização de posição/área de interesse; GET /health; WebSocket /v1/ws.
+Definir no primeiro marco: POST /v1/relatos; GET /v1/incidentes/ativos; POST /v1/rotas; PUT /v1/dispositivos/push; atualização de posição/área de interesse; GET /health; WebSocket /v1/ws.
 
 Relato: UUID, tipo, gravidade, latitude, longitude, origem da posição, precisão quando disponível, descrição opcional, occurred_at e indicador de demonstração. O servidor acrescenta received_at e GeoHash. Usar UTC/ISO 8601 no transporte, horário local na interface e nomes explícitos das coordenadas.
 
-Evento: event_id, schema_version, tipo, aggregate_id, aggregate_version, occurred_at, region_id, trace_id e payload. Tipos iniciais: relato.criado, incidente.criado, incidente.atualizado, incidente.expirado, camada.atualizada e notificacao.solicitada.
+Evento: event_id, schema_version, tipo, aggregate_id, aggregate_version, occurred_at, region_id, trace_id e payload. Tipos iniciais: relato.criado, incidente.criado, incidente.atualizado, incidente.expirado e notificacao.solicitada.
 
 Validar limites de campos, área consultada e submissão. Identificação simples da instalação não exige login com senha. Proteger endpoints de escrita e canais com token de sessão da instalação; excluir tokens e identificadores dos eventos públicos/logs de apresentação.
 
@@ -158,15 +148,15 @@ Dividir arquivos por responsabilidade e integrar continuamente. Dev 3 recebe apo
 
 | Período | Entrega e marco |
 | --- | --- |
-| **03–05/10** | Contratos, estrutura, fontes ambientais, prova de rotas, Docker disponível e acesso macOS/iPhone/credenciais encaminhado |
+| **03–05/10** | Contratos, estrutura, dados de relatos, prova de rotas, Docker disponível e acesso macOS/iPhone/credenciais encaminhado |
 | **06–11/10** | Fluxo GPS/SQLite → API/PostGIS/outbox → RabbitMQ → worker → mapa; duas partições/workers e perfil cluster iniciados |
 | **12–18/10** | Regras, retries/DLQ, Redis, WS, push Android/iOS, proximidade e reconexão automática |
-| **19–23/10** | Quatro camadas e rotas integradas; cluster, balanceamento, réplica PostgreSQL e failover controlado demonstrados |
+| **19–23/10** | Alagamento, Vias e rotas integrados; cluster, balanceamento, réplica PostgreSQL e failover controlado demonstrados |
 | **24–27/10** | Matriz de testes nas plataformas, carga controlada, correções, evidências e relatório; escopo congelado |
 | **28–29/10** | Builds instalados, ensaio, vídeo de apoio e pacote final |
 | **30/10** | Entrega e apresentação; reserva para falhas críticas |
 
-O escopo aumentou; a estimativa anterior de 90–130 horas deixa de valer. Reestimar após as provas do primeiro marco, por tarefa e disponibilidade real dos três integrantes. O cronograma é uma meta de execução com risco elevado, especialmente para iOS, push, fontes ambientais e cluster. Dependências sem acesso devem aparecer como pendentes, sem transformar requisito obrigatório em opcional.
+O escopo aumentou; a estimativa anterior de 90–130 horas deixa de valer. Reestimar após as provas do primeiro marco, por tarefa e disponibilidade real dos três integrantes. O cronograma é uma meta de execução com risco elevado, especialmente para iOS, push, rotas e cluster. Dependências sem acesso devem aparecer como pendentes, sem transformar requisito obrigatório em opcional.
 
 ## 11 Dependências que precisam ser resolvidas
 
@@ -174,9 +164,9 @@ A equipe informou que não dispõe de Mac nem iPhone. Obter acesso a macOS/Xcode
 
 Na auditoria de 03/10, Docker Desktop foi localizado fora do PATH e o cluster completo executou testes reais de processamento, replicação e falha de nós. Os scripts passaram a localizar essa instalação. Resultados e limites ficam em [docs/VALIDACAO_INFRA.md](docs/VALIDACAO_INFRA.md); a execução no mesmo notebook não comprova sobrevivência à perda do host.
 
-Firebase/APNs, chave do provedor de rotas e fontes ambientais foram dependências identificadas na fase inicial. Não inserir segredos no código. Eventuais contas, contratações ou equipamentos dependem de acesso providenciado pela equipe. Mocks identificados continuam úteis para ensaios controlados; cada integração real exige evidência própria.
+Firebase/APNs e chave do provedor de rotas foram dependências identificadas na fase inicial. Não inserir segredos no código. Eventuais contas, contratações ou equipamentos dependem de acesso providenciado pela equipe. Mocks identificados continuam úteis para ensaios controlados; cada integração real exige evidência própria.
 
-Na fase anterior de preparação, a equipe ainda não possuía Firebase ou chave OpenRouteService; os fluxos foram implementados com scripts e testes controlados, sem comprovar recebimento FCM/APNs ou resposta real ORS naquele momento. A preparação está em [docs/PUSH.md](docs/PUSH.md) e [docs/ROTAS.md](docs/ROTAS.md). A fonte histórica de calor está incluída e não depende dessas contas.
+Na fase anterior de preparação, a equipe ainda não possuía Firebase ou chave OpenRouteService; os fluxos foram implementados com scripts e testes controlados, sem comprovar recebimento FCM/APNs ou resposta real ORS naquele momento. A preparação está em [docs/PUSH.md](docs/PUSH.md) e [docs/ROTAS.md](docs/ROTAS.md).
 
 **Evidência histórica de 04/10:** o usuário forneceu a configuração Android e a conta de serviço do mesmo projeto Firebase. OAuth, dry-run FCM e um único envio fictício foram aceitos. No APK anterior, com o app em segundo plano, o usuário confirmou que a notificação chegou e tocar abriu o EcoPulse; [docs/evidence/fcm-phone-receipt.json](docs/evidence/fcm-phone-receipt.json) registra essa fonte humana, sem observação independente. O script de envio mantém `device_receipt_verified=false`, pois não observa o aparelho. Esse ensaio direto não exercitou primeiro plano, GPS, seleção geográfica ou dispatcher full; o ensaio geográfico posterior está documentado ao final deste plano. iOS/APNs permanecem pendentes.
 
@@ -198,7 +188,7 @@ No ensaio físico posterior, o usuário respondeu “tudo funcionou” ao roteir
 | WebSocket bidirecional | Assinatura e confirmação; atualização no segundo cliente sem ação manual; recuperação após queda |
 | Push | Recebimento geográfico comprovado separadamente em Android e iOS físicos |
 | GPS/proximidade | Captura automática, fallback e entrada no raio; alertas não repetem indevidamente |
-| Quatro camadas | Origem/horário/legenda presentes; simulação visível e separada de dados reais |
+| Alagamento e Vias | Tipo/gravidade/horário/legenda presentes; relatos simulados identificados |
 | Roteamento | Trajeto evita bloqueio; falta de alternativa/serviço é tratada |
 | Docker/persistência | Ambiente sobe com healthchecks e mantém dados após reiniciar |
 | Disponibilidade/recuperação | Interromper instância de serviço e banco principal; executar failover, verificar eventos confirmados e registrar tempo de recuperação |
@@ -208,7 +198,7 @@ Executar carga crescente de teste e registrar volume, latência, fila acumulada,
 
 Relatório conforme a seção VI da proposta e manual UNIP: capa; índice; objetivo e motivação (1–2 páginas); introdução (2–4); fundamentos tecnológicos (4–8); plano de desenvolvimento (5–15); projeto e arquitetura (3–8); relatório de código (máximo 10); apresentação em funcionamento; bibliografia e ficha APS. Explicar a arquitetura realmente executada, parâmetros, fontes, simulações e limites.
 
-Demonstração: GPS e relato; persistência offline/reinício; sincronização; processamento pelo broker; atualização no segundo aparelho e push; aviso de proximidade; camadas AQI/calor/obstrução; rota desviada; interrupção de worker/nó e recuperação; retry/DLQ e convergência do cache.
+Demonstração: GPS e relato; persistência offline/reinício; sincronização; processamento pelo broker; atualização no segundo aparelho e push; aviso de proximidade; filtros de alagamento e vias obstruídas; rota desviada; interrupção de worker/nó e recuperação; retry/DLQ e convergência do cache.
 
 Entregar código, instruções, configurações de exemplo, migrações, fixtures identificadas, scripts de teste, evidências, APK Android, build iOS instalado/testado e vídeo de apoio. Registrar cada requisito como Validado somente depois da evidência correspondente; instalações e arquivos gerados não significam que o app completo está pronto.
 

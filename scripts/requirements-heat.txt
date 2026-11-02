@@ -1,4 +1,0 @@
-# Optional importer only. The API reads the resulting GeoJSON, without GDAL.
-httpx==0.28.1
-numpy==2.2.6
-rasterio==1.4.3

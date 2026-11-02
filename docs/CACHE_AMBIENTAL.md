@@ -1,3 +1,5 @@
+> **Arquivo histórico:** Ar (AQI) e Calor foram retirados do projeto em **02/11/2026**, por solicitação do usuário. Este documento preserva a implementação e os resultados da versão de outubro; não descreve o escopo atual de Alagamento e Vias nem comprova a suíte atual. Evidências e entregas antigas foram mantidas.
+
 # Cache ambiental do EcoPulse
 
 AQI e calor agora usam o Redis Cluster real, além do cache de incidentes. A consulta mantém o PostgreSQL como fonte de referência e usa o payload do Redis quando a versão coincide e a validade da observação ainda está vigente.
@@ -46,23 +48,9 @@ O inicializador [infra/redis/init.sh](../infra/redis/init.sh) agora reintroduz p
 
 O job corrigido passou no cluster real. As duas mensagens ambientais foram reenviadas seletivamente, com confirmação de publicação antes do ACK da DLQ. Seis mensagens preexistentes de outros testes permaneceram na DLQ. Portanto, este ensaio não afirma que todas as DLQs do projeto estão vazias. Registro da recuperação: [environment-cache-recovery.json](evidence/environment-cache-recovery.json).
 
-## Reproduzir
+## Reprodução da versão anterior
 
-Com o cluster padrão já iniciado em modo `full` e o ambiente Python instalado:
-
-```powershell
-.\backend\.venv\Scripts\python.exe .\scripts\validate_environment_cluster.py --base-url http://127.0.0.1:8000 --project ecopulse --output .\docs\evidence\environment-cache.json
-```
-
-O teste altera temporariamente apenas uma chave de calor para verificar versão antiga, corrupção e TTL; depois a reconstrói pelo PostgreSQL. Ele não inicia, promove ou remove bancos de dados. Para testar também a indisponibilidade total do Redis, acrescente `--test-redis-outage`; isso para e reinicia somente os seis serviços Redis do projeto escolhido.
-
-No ambiente isolado desta validação, que **já havia promovido o PostgreSQL**, foi usado:
-
-```powershell
-.\backend\.venv\Scripts\python.exe .\scripts\validate_environment_cluster.py --base-url http://127.0.0.1:8001 --project ecopulse-validation --compose-file .runtime/compose.validation.yaml --promoted --test-redis-outage --output .\docs\evidence\environment-cache.json
-```
-
-O overlay de promoção é sempre aplicado por último. O arquivo `.runtime/compose.validation.yaml` é específico do ensaio local e não integra o pacote de fontes. Em um cluster novo, não use `--promoted` antes do procedimento de promoção e isolamento do primário antigo.
+O validador ambiental foi retirado junto com Ar e Calor. As provas registradas em `docs/evidence/` permanecem como histórico, sem uma rotina ambiental ativa na versão atual.
 
 ## Limites
 

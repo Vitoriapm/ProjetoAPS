@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 import '../data/api_client.dart';
 import '../data/device_store.dart';
 import '../data/local_store.dart';
-import '../models/environmental_point.dart';
 import '../models/incident.dart';
 import '../models/position_point.dart';
 import '../models/report.dart';
@@ -46,7 +45,6 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
   final Set<String> _alertedVersions = {};
   final Map<String, String> _proximityAlerts = {};
   List<Incident> _incidents = [];
-  List<EnvironmentalPoint> _environment = [];
   RouteResult? _route;
   PositionPoint? _position;
   String _apiBaseUrl = defaultBaseUrl;
@@ -78,7 +76,6 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   List<Incident> get incidents => List.unmodifiable(_incidents);
-  List<EnvironmentalPoint> get environment => List.unmodifiable(_environment);
   RouteResult? get route => _route;
   PositionPoint? get position => _position;
   String get apiBaseUrl => _apiBaseUrl;
@@ -119,7 +116,7 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
       _demoMode = mode == null || mode == 'true';
       final updated = await _store.readSetting('last_updated_at');
       _lastUpdatedAt = updated == null ? null : DateTime.tryParse(updated);
-      await _restoreCachedLayers();
+      await _restoreCachedIncidents();
       final alertLog = await _store.readSetting('alerted_versions');
       if (alertLog != null) {
         _alertedVersions.addAll((jsonDecode(alertLog) as List).cast<String>());
@@ -164,10 +161,9 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _restoreCachedLayers() async {
+  Future<void> _restoreCachedIncidents() async {
     try {
       final incidents = await _store.readSetting('incidents');
-      final environment = await _store.readSetting('environment');
       if (incidents != null) {
         _incidents = (jsonDecode(incidents) as List)
             .map(
@@ -176,17 +172,8 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
             )
             .toList();
       }
-      if (environment != null) {
-        _environment = (jsonDecode(environment) as List)
-            .map(
-              (item) => EnvironmentalPoint.fromFeature(
-                Map<String, dynamic>.from(item as Map),
-              ),
-            )
-            .toList();
-      }
     } catch (_) {
-      _message = 'As camadas salvas precisam ser atualizadas. A fila de relatos foi mantida.';
+      _message = 'As ocorrências salvas precisam ser atualizadas. A fila de relatos foi mantida.';
     }
   }
 
@@ -267,7 +254,7 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
       _serverReachable = false;
     }
     if (_disposed) return;
-    // Independent requests retain each cached layer if another request fails.
+    // Keep cached incidents when their refresh fails independently of reports.
     if (reportSyncSucceeded) {
       try {
         _demoMode = await _api.isDemoMode();
@@ -283,17 +270,6 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
           jsonEncode(fetched.map((item) => item.toFeature()).toList()),
         );
         _incidents = fetched;
-      } catch (failure) {
-        error ??= _humanError(failure);
-      }
-      try {
-        final fetched = await _api.getEnvironment(_position);
-        if (_disposed) return;
-        await _store.writeSetting(
-          'environment',
-          jsonEncode(fetched.map((item) => item.toFeature()).toList()),
-        );
-        _environment = fetched;
       } catch (failure) {
         error ??= _humanError(failure);
       }
@@ -675,7 +651,6 @@ class ReportController extends ChangeNotifier with WidgetsBindingObserver {
           'incidente.criado',
           'incidente.atualizado',
           'incidente.expirado',
-          'camada.atualizada',
         }.contains(event['type'])) {
           _eventDebounce?.cancel();
           _eventDebounce = Timer(

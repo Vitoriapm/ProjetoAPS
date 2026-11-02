@@ -57,9 +57,6 @@ async def check(base):
     status, collection = await asyncio.to_thread(call, base, "/v1/incidentes/ativos")
     assert status == 200 and collection["type"] == "FeatureCollection"
     assert any(item["properties"]["id"] == event["id"] for item in collection["features"])
-    status, layers = await asyncio.to_thread(call, base, "/v1/camadas/ambientais")
-    assert status == 200 and {"aqi", "calor"} <= {
-        item["properties"]["kind"] for item in layers["features"]}
     route_check = "configurada; não solicitada neste teste"
     if not health["configuration"]["routes_configured"]:
         status, _ = await asyncio.to_thread(call, base, "/v1/rotas", {
@@ -72,7 +69,7 @@ async def check(base):
     return {"executed_at": datetime.now(timezone.utc).isoformat(),
             "mode": health["mode"], "checks": [
                 "health", "sessão", "POST 201", "replay 200", "conflito 409",
-                "WebSocket subscribe/evento/pong", "GeoJSON", "AQI/calor", route_check],
+                "WebSocket subscribe/evento/pong", "GeoJSON", route_check],
             "report_is_demo": True,
             "distributed_cluster_validated": False}
 

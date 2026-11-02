@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../models/environmental_point.dart';
 import '../models/incident.dart';
 import '../models/position_point.dart';
 import '../models/report.dart';
@@ -24,7 +23,6 @@ abstract interface class EcoPulseApi {
   Future<List<Report>> getReports();
   Future<Report> postReport(Report report);
   Future<List<Incident>> getIncidents(PositionPoint? position);
-  Future<List<EnvironmentalPoint>> getEnvironment(PositionPoint? position);
   Future<RouteResult> getRoute({
     required PositionPoint origin,
     required PositionPoint destination,
@@ -206,24 +204,6 @@ class ApiClient implements EcoPulseApi {
         .map(
           (item) =>
               Incident.fromFeature(Map<String, dynamic>.from(item as Map)),
-        )
-        .toList();
-  }
-
-  @override
-  Future<List<EnvironmentalPoint>> getEnvironment(
-    PositionPoint? position,
-  ) async {
-    final collection = await _request(
-      'GET',
-      '/v1/camadas/ambientais',
-      query: _positionQuery(position),
-    ) as Map;
-    return (collection['features'] as List)
-        .map(
-          (item) => EnvironmentalPoint.fromFeature(
-            Map<String, dynamic>.from(item as Map),
-          ),
         )
         .toList();
   }

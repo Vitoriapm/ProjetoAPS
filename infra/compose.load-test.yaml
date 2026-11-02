@@ -5,7 +5,6 @@ x-load-app: &load-app
   environment:
     FCM_CREDENTIALS_FILE: ""
     ORS_API_KEY: ""
-    ENVIRONMENT_SOURCE: fixtures
   volumes: !override []
 services:
   api: *load-app

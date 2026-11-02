@@ -2,14 +2,13 @@ import asyncio
 from datetime import timedelta
 from unittest.mock import patch
 from uuid import uuid4
-from sqlalchemy import select
 import httpx
 import pytest
 from backend.shared.config import Settings
 from backend.shared.db import Store, devices, iso, utc_now
 from backend.shared.domain import ingest, process_report
 from backend.shared.models import RelatoRequest, RouteRequest
-from backend.shared.providers import calculate_route, environmental_layers, ProviderUnavailable, RouteRejected
+from backend.shared.routes import calculate_route, ProviderUnavailable, RouteRejected
 from backend.alerts.main import geographic_devices, FcmAdapter
 
 
@@ -90,34 +89,6 @@ def test_provider_failure_never_removes_avoidance(tmp_path):
     assert len(calls) == 1 and b"avoid_polygons" in calls[0].content
 
 
-def test_open_meteo_is_modelled_aqi_and_landsat_heat_remains_historical(tmp_path):
-    repository, config = store(tmp_path)
-    config.mode = "full"  # Provider branch only; no infrastructure validation implied.
-    def provider(req):
-        assert req.url.params["domains"] == "cams_global"
-        return httpx.Response(200, json={"latitude": -21.2, "longitude": -47.8,
-            "current": {"time": utc_now().replace(tzinfo=None).isoformat(timespec="minutes"), "us_aqi": 61}})
-    async def run():
-        async with httpx.AsyncClient(transport=httpx.MockTransport(provider)) as client:
-            return await environmental_layers(repository, config, -21.1775, -47.8101, client)
-    collection = asyncio.run(run())
-    aqi = collection["features"][0]["properties"]
-    assert aqi["value"] == 61 and not aqi["is_demo"]
-    assert "modelada" in aqi["source"] and "estação local" in aqi["label"]
-    assert all(not x["properties"]["is_demo"] and x["properties"]["observation_type"] == "historic"
-        and "não representa o calor atual" in x["properties"]["label"] for x in collection["features"][1:])
-
-
-def test_aqi_failure_does_not_silently_switch_to_fiction(tmp_path):
-    repository, config = store(tmp_path)
-    config.mode = "full"
-    async def run():
-        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(503))) as client:
-            with pytest.raises(ProviderUnavailable):
-                await environmental_layers(repository, config, -21.1775, -47.8101, client)
-    asyncio.run(run())
-
-
 def test_push_selects_neighbor_nearby_only_with_valid_last_position(tmp_path):
     repository, _ = store(tmp_path)
     feature = add_incident(repository)
@@ -157,41 +128,6 @@ def test_fcm_notification_text_identifies_simulation_before_app_opens(tmp_path, 
     else:
         assert message.notification.title == "EcoPulse"
         assert message.notification.body == "Há uma ocorrência registrada perto de você."
-
-
-@pytest.mark.parametrize("value", [510, 0, 61.5])
-def test_aqi_accepts_supported_numeric_values_including_above_500(tmp_path, value):
-    repository, config = store(tmp_path)
-    config.mode = "full"
-    response = {"latitude": -21.2, "longitude": -47.8,
-        "current": {"time": utc_now().replace(tzinfo=None).isoformat(timespec="minutes"), "us_aqi": value}}
-    async def run():
-        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(200, json=response))) as client:
-            return await environmental_layers(repository, config, -21.1775, -47.8101, client)
-    collection = asyncio.run(run())
-    assert collection["features"][0]["properties"]["value"] == value
-    assert not collection["features"][0]["properties"]["is_demo"]
-
-
-@pytest.mark.parametrize("field,value", [("us_aqi", None), ("us_aqi", True), ("us_aqi", -1),
-    ("latitude", None), ("latitude", True), ("latitude", 91), ("longitude", 181)])
-def test_aqi_rejects_invalid_provider_payload_without_poisoning_cache(tmp_path, field, value):
-    repository, config = store(tmp_path)
-    config.mode = "full"
-    response = {"latitude": -21.2, "longitude": -47.8,
-        "current": {"time": utc_now().replace(tzinfo=None).isoformat(timespec="minutes"), "us_aqi": 61}}
-    if field == "us_aqi":
-        response["current"][field] = value
-    else:
-        response[field] = value
-    async def run():
-        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(200, json=response))) as client:
-            with pytest.raises(ProviderUnavailable):
-                await environmental_layers(repository, config, -21.1775, -47.8101, client)
-    asyncio.run(run())
-    from backend.shared.db import environment
-    with repository.engine.connect() as conn:
-        assert conn.execute(select(environment.c.id)).first() is None
 
 
 @pytest.mark.parametrize("value", [None, True, -1, "2300"])

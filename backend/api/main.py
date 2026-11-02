@@ -12,13 +12,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import ValidationError
 from sqlalchemy import select, update, func
 from backend.shared.broker import connect
-from backend.shared.cache import CHANNEL, cluster_client, rebuild_cache, cached_features, cached_environment_features
+from backend.shared.cache import CHANNEL, cluster_client, rebuild_cache, cached_features
 from backend.shared.config import Settings
-from backend.shared.db import Store, devices, relatos, outbox, utc_now, iso, parse_time
+from backend.shared.db import Store, devices, relatos, outbox, active_outbox_routes, utc_now, iso, parse_time
 from backend.shared.domain import ConflictError, ingest, process_report, expire_incidents
 from backend.shared.geo import covering_regions, distance_m
 from backend.shared.models import SessionRequest, RelatoRequest, PositionRequest, PushRequest, Subscription, RouteRequest
-from backend.shared.providers import environmental_layers, calculate_route, ProviderUnavailable, RouteRejected
+from backend.shared.routes import calculate_route, ProviderUnavailable, RouteRejected
 
 log = logging.getLogger(__name__)
 bearer = HTTPBearer(auto_error=False)
@@ -155,7 +155,8 @@ def create_app(settings=None):
             await asyncio.to_thread(app.state.store.ping)
             infrastructure["database"] = "ok"
             with app.state.store.engine.connect() as conn:
-                pending = conn.execute(select(func.count()).select_from(outbox).where(outbox.c.published.is_(False))).scalar_one()
+                pending = conn.execute(select(func.count()).select_from(outbox).where(
+                    outbox.c.published.is_(False), active_outbox_routes())).scalar_one()
         except Exception:
             infrastructure["database"] = "indisponivel"
             pending = None
@@ -165,8 +166,7 @@ def create_app(settings=None):
         return {"status": "degraded" if degraded else "ok", "mode": settings.mode,
             "services": infrastructure, "outbox_pending": pending,
             "configuration": {"shards": settings.shard_count, "fcm_configured": bool(settings.fcm_credentials),
-                "routes_configured": bool(settings.ors_key),
-                "heat_source": "fixture_simulada" if settings.environment_source == "fixtures" else "landsat_historico"},
+                "routes_configured": bool(settings.ors_key)},
             "notice": "Modo local simulado: não comprova sistemas distribuídos" if settings.mode == "demo" else "Infraestrutura real; validação requer evidências de execução"}
 
     @app.post("/v1/sessoes")
@@ -207,21 +207,6 @@ def create_app(settings=None):
                 infrastructure["cache"] = "indisponivel"
                 log.warning("Consulta de cache falhou; resposta mantém estado durável do PostgreSQL")
         return {"type": "FeatureCollection", "features": features}
-
-    @app.get("/v1/camadas/ambientais")
-    async def layers(latitude: float = Query(-21.1775, ge=-85, le=85), longitude: float = Query(-47.8101, ge=-180, le=180)):
-        try:
-            collection = await environmental_layers(app.state.store, settings, latitude, longitude)
-            if app.state.cache is not None:
-                try:
-                    collection["features"] = await asyncio.to_thread(
-                        cached_environment_features, app.state.cache, collection["features"])
-                except Exception:
-                    infrastructure["cache"] = "indisponivel"
-                    log.warning("Cache ambiental indisponível; resposta preserva observações duráveis")
-            return collection
-        except ProviderUnavailable as exc:
-            raise HTTPException(503, str(exc))
 
     @app.post("/v1/rotas")
     async def route(request: RouteRequest, _=Depends(installation)):

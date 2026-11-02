@@ -28,8 +28,7 @@ if (-not (Test-Path -LiteralPath $envPath)) {
         "JWT_SECRET=$(New-TaskSecret)",
         'ECOPULSE_BIND_ADDRESS=127.0.0.1',
         'ORS_API_KEY=',
-        'FCM_CREDENTIALS_FILE=',
-        'ENVIRONMENT_SOURCE=open-meteo'
+        'FCM_CREDENTIALS_FILE='
     )
     $stream = [IO.File]::Open($envPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
     $writer = New-Object IO.StreamWriter($stream, (New-Object Text.UTF8Encoding($false)))

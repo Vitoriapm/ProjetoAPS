@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../models/environmental_point.dart';
 import '../models/incident.dart';
 import '../models/report.dart';
 import '../state/report_controller.dart';
@@ -22,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MapController _mapController = MapController();
-  final Set<String> _layers = {'alagamento', 'obstrucao', 'aqi', 'calor'};
+  final Set<String> _layers = {'alagamento', 'obstrucao'};
   bool _showList = false;
   bool _mapUnavailable = false;
   bool _mapErrorScheduled = false;
@@ -32,8 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool get _hasDemo =>
       controller.demoMode ||
       controller.reports.any((report) => report.isDemo) ||
-      controller.incidents.any((incident) => incident.isDemo) ||
-      controller.environment.any((point) => point.isDemo);
+      controller.incidents.any((incident) => incident.isDemo);
 
   @override
   void dispose() {
@@ -205,8 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icons.water_drop_outlined,
                     ),
                     _layerChip('obstrucao', 'Vias', Icons.block_outlined),
-                    _layerChip('aqi', 'Ar', Icons.air),
-                    _layerChip('calor', 'Calor', Icons.wb_sunny_outlined),
                   ],
                 ),
               ),
@@ -311,9 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final incidents = controller.incidents
         .where((i) => _layers.contains(i.type.wireValue))
         .toList();
-    final environmental = controller.environment
-        .where((point) => _layers.contains(point.kind))
-        .toList();
     final reports = controller.reports
         .where((r) => _layers.contains(r.type.wireValue))
         .toList();
@@ -349,18 +342,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderColor: severityColor(incident.severity),
                       borderStrokeWidth: 1.5,
                     ),
-                for (final point in environmental)
-                  if (point.polygon != null && point.polygon!.length >= 3)
-                    Polygon(
-                      points: point.polygon!
-                          .map((p) => LatLng(p[1], p[0]))
-                          .toList(),
-                      color: _environmentColor(point.kind)
-                          .withValues(alpha: .16),
-                      borderColor: _environmentColor(point.kind)
-                          .withValues(alpha: .5),
-                      borderStrokeWidth: 1,
-                    ),
               ],
             ),
             CircleLayer(
@@ -378,15 +359,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           .withValues(alpha: .2),
                       borderColor: severityColor(incident.severity),
                       borderStrokeWidth: 1,
-                    ),
-                for (final point in environmental)
-                  if (point.polygon == null)
-                    CircleMarker(
-                      point: LatLng(point.latitude, point.longitude),
-                      radius: 420,
-                      useRadiusInMeter: true,
-                      color: _environmentColor(point.kind)
-                          .withValues(alpha: .13),
                     ),
               ],
             ),
@@ -434,33 +406,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${report.type.label}${report.isPending ? ', aguardando envio' : ''}',
                       () => _reportDetails(report),
                       small: true,
-                    ),
-                  ),
-                for (final point in environmental)
-                  Marker(
-                    point: LatLng(point.latitude, point.longitude),
-                    width: 46,
-                    height: 38,
-                    child: GestureDetector(
-                      onTap: () => _environmentDetails(point),
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: _environmentColor(point.kind),
-                          ),
-                        ),
-                        child: Text(
-                          '${point.value.toStringAsFixed(0)}${point.kind == 'calor' ? '°' : ''}',
-                          style: TextStyle(
-                            color: _environmentColor(point.kind),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
                     ),
                   ),
                 if (controller.position != null)
@@ -597,9 +542,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   );
 
-  Color _environmentColor(String kind) =>
-      kind == 'aqi' ? const Color(0xFF728640) : const Color(0xFFB77036);
-
   Widget _list() {
     final incidents = controller.incidents.where(
       (i) => _layers.contains(i.type.wireValue),
@@ -607,16 +549,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final reports = controller.reports.where(
       (r) => _layers.contains(r.type.wireValue),
     );
-    final environment = controller.environment.where(
-      (p) => _layers.contains(p.kind),
-    );
     return RefreshIndicator(
       onRefresh: controller.synchronize,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
         children: [
-          if (incidents.isEmpty && reports.isEmpty && environment.isEmpty)
+          if (incidents.isEmpty && reports.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 46, horizontal: 20),
               child: Column(
@@ -660,17 +599,6 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle:
                   '${report.isPending ? 'Salvo • aguardando envio' : report.severity.label}\n${shortDate(report.occurredAt)}${report.isDemo ? ' • exemplo' : ''}',
               onTap: () => _reportDetails(report),
-            ),
-          if (environment.isNotEmpty) _listHeading('Camadas ambientais'),
-          for (final point in environment)
-            _listTile(
-              icon: point.kind == 'aqi' ? Icons.air : Icons.wb_sunny_outlined,
-              color: _environmentColor(point.kind),
-              title:
-                  '${point.kind == 'aqi' ? 'Qualidade do ar' : 'Calor'} • ${point.value.toStringAsFixed(0)} ${point.unit}',
-              subtitle:
-                  '${point.label}\n${point.isDemo ? 'Exemplo simulado' : point.source}',
-              onTap: () => _environmentDetails(point),
             ),
         ],
       ),
@@ -883,42 +811,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
       ]);
 
-  void _environmentDetails(EnvironmentalPoint point) => _detailSheet(
-    point.kind == 'aqi' ? 'Qualidade do ar' : 'Camada de calor',
-    [
-      _detailRow(
-        point.kind == 'calor' ? 'Contraste da superfície' : 'Valor',
-        '${point.value.toStringAsFixed(1)} ${point.unit}',
-      ),
-      _detailRow('Sobre o dado', point.label),
-      if (point.surfaceTemperatureC != null)
-        _detailRow(
-          'Temperatura da superfície',
-          '${point.surfaceTemperatureC!.toStringAsFixed(1)} °C',
-        ),
-      if (point.referenceTemperatureC != null)
-        _detailRow(
-          'Referência vegetada da cena',
-          '${point.referenceTemperatureC!.toStringAsFixed(1)} °C',
-        ),
-      _detailRow('Escala', point.scale),
-      _detailRow('Fonte', point.source),
-      _detailRow(
-        point.observationType == 'historic'
-            ? 'Aquisição da imagem'
-            : 'Atualização',
-        shortDate(point.updatedAt),
-      ),
-      if (point.attribution != null) _detailRow('Créditos', point.attribution!),
-      if (point.isDemo)
-        const InfoStrip(
-          icon: Icons.science_outlined,
-          text: 'Dado simulado. Não corresponde a uma medição ambiental real.',
-          color: Color(0xFF8B651D),
-        ),
-    ],
-  );
-
   Widget _detailRow(String label, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 14),
     child: Column(
@@ -984,13 +876,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const Text(
       'Gota: alagamento • círculo cortado: via obstruída.\nRelógio: relato salvo, ainda sem envio.\nPonto azul: localização GPS ou origem escolhida.',
       style: TextStyle(fontSize: 13, height: 1.7),
-    ),
-    const SizedBox(height: 16),
-    const Text('Ar e calor', style: TextStyle(fontWeight: FontWeight.w600)),
-    const SizedBox(height: 7),
-    const Text(
-      'Ar mostra o AQI. Calor mostra o contraste de temperatura da superfície de uma imagem histórica Landsat, em °C. Toque para conferir fonte e data; não é a temperatura atual do ar.',
-      style: TextStyle(fontSize: 13, height: 1.5),
     ),
     const SizedBox(height: 16),
     const InfoStrip(

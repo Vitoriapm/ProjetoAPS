@@ -1,3 +1,5 @@
+> **Arquivo histórico:** Ar (AQI) e Calor foram retirados do projeto em **02/11/2026**, por solicitação do usuário. Este documento preserva a implementação e os resultados da versão de outubro; não descreve o escopo atual de Alagamento e Vias nem comprova a suíte atual. Evidências e entregas antigas foram mantidas.
+
 # Relatório APS — EcoPulse
 
 UNIP — UNIVERSIDADE PAULISTA

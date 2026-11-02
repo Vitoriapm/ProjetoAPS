@@ -29,8 +29,12 @@ devices = Table("dispositivos", metadata,
 deliveries = Table("entregas_alerta", metadata,
     Column("id", String(100), primary_key=True), Column("status", String(30), nullable=False),
     Column("provider_id", String(300)), Column("updated_at", String(32), nullable=False))
-environment = Table("observacoes_ambientais", metadata,
-    Column("id", String(80), primary_key=True), Column("data", JSON, nullable=False))
+
+
+def active_outbox_routes():
+    # Retain historical rows from retired features without attempting to send
+    # them to broker routes that no longer have consumers.
+    return outbox.c.route.like("relato.%") | outbox.c.route.like("incidente.%")
 
 
 def utc_now():

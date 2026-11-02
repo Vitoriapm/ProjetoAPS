@@ -1,3 +1,5 @@
+> **Arquivo histórico:** Ar (AQI) e Calor foram retirados do projeto em **02/11/2026**, por solicitação do usuário. Este documento preserva a implementação e os resultados da versão de outubro; não descreve o escopo atual de Alagamento e Vias nem comprova a suíte atual. Evidências e entregas antigas foram mantidas.
+
 # Validação real da infraestrutura EcoPulse
 
 O cluster foi executado em 03/10/2026, das 22h43 às 22h59 de Brasília aproximadamente (os arquivos registram 04/10 em UTC). Os resultados comprovam o protótipo distribuído em um único notebook. Não comprovam disponibilidade de produção, SLA, falha do host ou recebimento de push físico.
@@ -58,7 +60,7 @@ Validação estática Compose e AST PowerShell passaram. A suíte final do backe
 
 O PostgreSQL usa replicação assíncrona. A promoção realizada aguardou a LSN com os escritores pausados; não comprova perda zero em falha inesperada. O antigo primário terminou parado e sem rede. Depois da promoção, o novo primário ainda não tem uma nova réplica: é necessário reconstruir o nó antigo de forma controlada, com backup e análise, antes de outra demonstração de redundância PostgreSQL.
 
-Na conclusão deste ensaio de 03/10, ainda faltavam fonte espacial de calor e cache ambiental. **Atualização de 04/10:** calor agora usa 32 polígonos Landsat reais históricos de 17/09/2025; o cache ambiental passou no cluster com 33 camadas, versões/TTL, duas APIs/WebSockets e fallback/retomada dos seis Redis. Veja [CALOR.md](CALOR.md) e [CACHE_AMBIENTAL.md](CACHE_AMBIENTAL.md); esses ensaios novos não alteram as medições históricas acima. Continuam pendentes credenciais/chamada real ORS, configuração FCM/APNs e recebimento físico Android/iOS, além de ensaio em múltiplos hosts e perda abrupta do host.
+Na conclusão deste ensaio de 03/10, ainda faltavam fonte espacial de calor e cache ambiental. **Atualização de 04/10:** calor agora usa 32 polígonos Landsat reais históricos de 17/09/2025; o cache ambiental passou no cluster com 33 camadas, versões/TTL, duas APIs/WebSockets e fallback/retomada dos seis Redis. Veja [CALOR_HISTORICO.md](CALOR_HISTORICO.md) e [CACHE_AMBIENTAL.md](CACHE_AMBIENTAL.md); esses ensaios novos não alteram as medições históricas acima. Continuam pendentes credenciais/chamada real ORS, configuração FCM/APNs e recebimento físico Android/iOS, além de ensaio em múltiplos hosts e perda abrupta do host.
 
 Ao encerrar os ensaios, a raiz parou somente `ecopulse-validation`, preservando volumes para liberar memória e atualizar o APK. Demo 8000 e prévia 5173 continuaram abertos. Para voltar ao estado promovido, usar base + cluster + overlay local de portas + `compose.failover.yaml` por último. Não iniciar o antigo primário nem executar a configuração anterior sobre esse projeto. O projeto normal `ecopulse-cluster` é separado e não reutiliza os volumes da validação.
 

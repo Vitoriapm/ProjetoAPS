@@ -1,5 +1,7 @@
 # Configurar Firebase, APNs e OpenRouteService
 
+> **Versão atual:** o código de 02/11/2026 oferece Alagamento e Vias. Os APKs de outubro mencionados neste guia são históricos e ainda podem mostrar Ar e Calor. Para testar a alteração, execute o código atual ou gere um novo APK.
+
 Guia do EcoPulse, conferido em **04/10/2026**. A equipe tem conta Google, mas ainda não tem Apple Developer, Mac ou iPhone. Comece por Android e rotas. Nenhuma conta ou chave foi criada pelo assistente.
 
 **Cliente e servidor Android preparados, celular registrado:** `mobile/android/app/google-services.json` e `secrets/fcm.json` estão presentes, estruturalmente válidos e pertencem ao mesmo projeto. O [APK Firebase](../entregas/EcoPulse-Firebase.apk) compilou às **15:58**, horário de São Paulo, com Firebase ativado, e o usuário informou sua instalação no celular. O servidor vê um único Android com token registrado, sem posição registrada naquela etapa inicial, conforme [firebase-phone-registration.json](evidence/firebase-phone-registration.json). O APK demo permanece com Firebase desligado. A chave ORS está configurada e a prova real do adaptador passou; os acessos iOS continuam pendentes. Preparação do cliente em [firebase-android-preparation.json](evidence/firebase-android-preparation.json).

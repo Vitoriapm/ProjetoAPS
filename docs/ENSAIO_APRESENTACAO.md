@@ -1,11 +1,11 @@
 # Ensaio de dez minutos do EcoPulse
 
 Procedimento para a equipe executar o ensaio presencial. Sua preparação não
-comprova que o ensaio aconteceu. Use o roteiro Word revisado em 06/10.
+comprova que o ensaio aconteceu. Use o roteiro atual em [APRESENTACAO_ATUAL.md](APRESENTACAO_ATUAL.md). O Word de 06/10 permanece como artefato histórico da versão anterior.
 
 ## Antes do cronômetro
 
-Conferir APK +4, servidor na porta 8011 e rede entre Android e computador.
+Conferir o código atual ou um novo APK gerado após 02/11/2026, o endereço do servidor e a rede entre Android e computador. O APK +4 de outubro é histórico e ainda pode mostrar Ar e Calor.
 Abrir mapa, lista, camadas e detalhes; verificar bateria, projeção e legibilidade.
 Separar capturas e evidências para continuar se uma consulta não responder.
 Confirmar campus e data. Preparar referências manuais distante e próxima do
@@ -20,7 +20,7 @@ forçar um aviso. Se a versão já foi avisada, usar a evidência.
 | Tempo | Integrante | Conteúdo |
 | --- | --- | --- |
 | 0:00–0:45 | Vitória | Problema e proposta |
-| 0:45–2:05 | Vitória | Mapa, AQI modelado e calor histórico |
+| 0:45–2:05 | Vitória | Mapa, Alagamento e Vias |
 | 2:05–3:20 | Vitória | Um relato fictício, offline e reconexão |
 | 3:20–4:30 | Alessandro | Caminho do evento e arquitetura |
 | 4:30–6:10 | Alessandro | Aviso local com referências manuais |
@@ -38,7 +38,7 @@ professor altere o tempo autorizado.
 - Anotar tempo total e tempo individual.
 - Conferir relato único, reenvio sem duplicação e legibilidade das telas.
 - Ensaiar a passagem para lista/captura/evidência se rede ou provedor demorarem.
-- Manter explícitos calor histórico, infraestrutura em um computador e a
+- Manter explícitos os relatos simulados, infraestrutura em um computador e a
   origem dos resultados: a equipe confirmou aprovação manual de iOS/APNs e
   do percurso físico por GPS, conforme o relatório final.
 - Conferir a ficha final com 21 horas de Vitória, 23 horas de Alessandro e

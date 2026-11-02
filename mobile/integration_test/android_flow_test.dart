@@ -55,7 +55,6 @@ void main() {
     expect(restored.reports.singleWhere((report) => report.id == id).isPending,
         isFalse);
     expect(restored.incidents, isNotEmpty);
-    expect(restored.environment.map((point) => point.kind), containsAll(['aqi', 'calor']));
     await tester.pumpWidget(EcoPulseApp(
       controller: restored,
       initializeController: false,

@@ -54,8 +54,6 @@ def main():
         "fcm_credentials_file_exists_on_host": credentials_on_host(fcm_file),
         "android_google_services_file_exists": (ROOT / "mobile/android/app/google-services.json").is_file(),
         "ios_google_service_plist_exists": (ROOT / "mobile/ios/Runner/GoogleService-Info.plist").is_file(),
-        "environment_source_is_open_meteo": values.get("ENVIRONMENT_SOURCE", "open-meteo") == "open-meteo",
-        "environment_source_is_fixtures": values.get("ENVIRONMENT_SOURCE", "open-meteo") == "fixtures",
     }
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
 

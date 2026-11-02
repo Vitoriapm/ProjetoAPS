@@ -1,3 +1,5 @@
+> **Arquivo histórico:** Ar (AQI) e Calor foram retirados do projeto em **02/11/2026**, por solicitação do usuário. Este documento preserva a implementação e os resultados da versão de outubro; não descreve o escopo atual de Alagamento e Vias nem comprova a suíte atual. Evidências e entregas antigas foram mantidas.
+
 # Validação do EcoPulse
 
 Atualização em **05/10/2026**, horário de São Paulo, comparada com `Proposta_APS_DSD_EcoPulse.docx` e o plano integrado. Os ensaios anteriores permanecem registrados abaixo; a revisão atual inclui o fluxo geográfico de push pelo backend full, com confirmação humana de recebimento Android em segundo plano. O projeto completo para ambas as plataformas ainda não está validado.
@@ -61,7 +63,7 @@ O usuário, que havia confirmado o app em segundo plano, respondeu **“Recebi e
 - [android-current-smoke.json](evidence/android-current-smoke.json): APK recompilado, abertura e canal Android HIGH; o ensaio não enviou push.
 - [firebase-android-preparation.json](evidence/firebase-android-preparation.json): etapa histórica da configuração Android e APK Firebase separado. A preparação do servidor posterior está em [firebase-server-auth.json](evidence/firebase-server-auth.json) e [firebase-demo-runtime.json](evidence/firebase-demo-runtime.json): OAuth autenticado e API demo saudável, com 18 IDs preservados; nenhum envio/recebimento comprovado.
 - [VALIDACAO_IOS_PENDENTE.md](VALIDACAO_IOS_PENDENTE.md): revisão iOS e passos ainda não executados.
-- [heat-live.json](evidence/heat-live.json) e [CALOR.md](CALOR.md): dados históricos Landsat, processamento e limites.
+- [heat-live.json](evidence/heat-live.json) e [CALOR_HISTORICO.md](CALOR_HISTORICO.md): dados históricos Landsat, processamento e limites.
 - [heat-web-current.json](evidence/heat-web-current.json), [mapa atual](evidence/home-web-current.png) e [detalhe de calor](evidence/heat-web-current.png): versão web recompilada, fonte/valores e aviso histórico legíveis.
 - [CACHE_AMBIENTAL.md](CACHE_AMBIENTAL.md) e [environment-cache.json](evidence/environment-cache.json): versão, validade, reconstrução e ensaio real do cache ambiental.
 - [routes-phone-confirmation.json](evidence/routes-phone-confirmation.json): usuário confirmou a rota aparecendo no Android; sem observação independente ou coleta de valores/pontos no telefone.

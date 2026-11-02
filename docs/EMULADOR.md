@@ -1,5 +1,7 @@
 # Abertura do EcoPulse no emulador
 
+> **Versão atual:** o código de 02/11/2026 oferece Alagamento e Vias. Os APKs de outubro mencionados neste guia são históricos e ainda podem mostrar Ar e Calor. Para testar a alteração, execute o código atual ou gere um novo APK.
+
 Na investigação de 05/10/2026, o computador tinha aproximadamente 8 GB de RAM, com 180–300 MB livres durante as tentativas. O Windows mantinha cerca de 1,4 GB de memória comprimida. O Android exibiu avisos de Pixel Launcher e System UI sem resposta. A instância anterior também registrou `NoSuchFieldError` no Google Play Services.
 
 Os APKs entregues foram preservados. Ambos contêm a entrada normal `package:ecopulse/main.dart`; não contêm a entrada temporária de captura. A inspeção do Dart VM do APK Firebase confirmou a isolate principal executando, sem pausa. O APK original abriu no novo emulador Android 14, com mapa de ruas carregado. Sua abertura após reiniciar o emulador também foi observada. O comando Android `am start -W` excedeu seu tempo de espera, embora a interface tenha aparecido depois; não se deve tratar esse retorno como medição de abertura rápida.

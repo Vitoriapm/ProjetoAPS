@@ -111,7 +111,7 @@ class Subscription(Point):
 class Event(StrictModel):
     event_id: UUID
     schema_version: Literal[1] = 1
-    tipo: Literal["relato.criado", "incidente.criado", "incidente.atualizado", "incidente.expirado", "camada.atualizada"]
+    tipo: Literal["relato.criado", "incidente.criado", "incidente.atualizado", "incidente.expirado"]
     aggregate_id: UUID
     aggregate_version: int = Field(ge=1)
     occurred_at: AwareDatetime

@@ -43,7 +43,7 @@ void main() {
   );
 
   test(
-    'GeoJSON incidents/environment parse coordinates and version intact',
+    'GeoJSON incidents parse coordinates and version intact',
     () async {
       final fixture = fixtureIncident(version: 3);
       final client = ApiClient(

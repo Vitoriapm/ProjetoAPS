@@ -6,13 +6,11 @@ Agente core é dono de lib/models, lib/data, lib/state, lib/services e testes co
 
 `models/incident.dart`: Incident com id,type,severity,centerLatitude,centerLongitude,radiusM,updatedAt,expiresAt,isDemo,reportCount,version,state; polygons como List<List<double>> em ordemlongitude,latitude.
 
-`models/environmental_point.dart`: EnvironmentalPoint com id,kind,value,unit,scale,source,updatedAt,isDemo,label,latitude,longitude,polygon(List<List<double>> nullable).
-
 `models/route_result.dart`: RouteResult com coordinates List<List<double>> (lon,lat),distanceM,durationS,avoidedIncidents,source,updatedAt.
 
 `models/position_point.dart`: PositionPoint(latitude,longitude,accuracyM nullable,source='gps').
 
-`state/report_controller.dart`: ReportController extends ChangeNotifier com construtor default utilizável. Getters reports(List<Report>),incidents(List<Incident>),environment(List<EnvironmentalPoint>),route(RouteResult?),position(PositionPoint?),apiBaseUrl(String),isLoading(bool),isSyncing(bool),serverReachable(bool),demoMode(bool),pendingCount(int),lastUpdatedAt(DateTime?),message(String?),pushStatus(String).
+`state/report_controller.dart`: ReportController extends ChangeNotifier com construtor default utilizável. Getters reports(List<Report>),incidents(List<Incident>),route(RouteResult?),position(PositionPoint?),apiBaseUrl(String),isLoading(bool),isSyncing(bool),serverReachable(bool),demoMode(bool),pendingCount(int),lastUpdatedAt(DateTime?),message(String?),pushStatus(String).
 
 Métodos Future<void> initialize(),synchronize(),configureServer(String),requestLocation(),submitReport({required double latitude,required double longitude,required Severity severity,required ReportType type,String description='',String positionSource='manual',double? accuracyM,bool isDemo=false}),calculateRoute({required double destinationLatitude,required double destinationLongitude,String profile='driving-car'}); clearMessage(),clearRoute(),dispose(). Erros operacionais viram message humano; nunca apagar fila em falha/GET vazio. Sincronização automática ao reabrir/reconectar. UI trata initialize no startup e chama listener de mensagens.
 

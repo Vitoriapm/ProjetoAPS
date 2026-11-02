@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:ecopulse/data/api_client.dart';
 import 'package:ecopulse/data/local_store.dart';
-import 'package:ecopulse/models/environmental_point.dart';
 import 'package:ecopulse/models/incident.dart';
 import 'package:ecopulse/models/position_point.dart';
 import 'package:ecopulse/models/report.dart';
@@ -47,7 +46,6 @@ class FakeApi implements EcoPulseApi {
   final Map<String, Report> serverReports = {};
   final List<Map<String, dynamic>> postedPayloads = [];
   List<Incident> incidentItems = [];
-  List<EnvironmentalPoint> environmentalItems = [];
   @override
   void configure({required String baseUrl, required String installationId}) {}
   @override
@@ -94,14 +92,6 @@ class FakeApi implements EcoPulseApi {
   Future<List<Incident>> getIncidents(PositionPoint? position) async {
     _check();
     return incidentItems;
-  }
-
-  @override
-  Future<List<EnvironmentalPoint>> getEnvironment(
-    PositionPoint? position,
-  ) async {
-    _check();
-    return environmentalItems;
   }
 
   @override

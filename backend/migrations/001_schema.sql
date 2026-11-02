@@ -39,5 +39,4 @@ CREATE TABLE IF NOT EXISTS entregas_alerta (
     id VARCHAR(100) PRIMARY KEY, status VARCHAR(30) NOT NULL,
     provider_id VARCHAR(300), updated_at VARCHAR(32) NOT NULL
 );
-CREATE TABLE IF NOT EXISTS observacoes_ambientais (id VARCHAR(80) PRIMARY KEY, data JSON NOT NULL);
 COMMIT;

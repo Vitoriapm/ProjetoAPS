@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from sqlalchemy import select, update, text
 from backend.shared.broker import consume_loop
-from backend.shared.cache import cluster_client, update_cache, update_environment_cache
+from backend.shared.cache import cluster_client, update_cache
 from backend.shared.config import Settings
 from backend.shared.db import Store, devices, deliveries, processed, incidentes, utc_now, parse_time, iso
 from backend.shared.geo import distance_m
@@ -109,9 +109,7 @@ async def run():
         with store.engine.connect() as conn:
             if conn.execute(select(processed.c.event_id).where(processed.c.consumer == "alerts", processed.c.event_id == event_id)).first():
                 return
-        if evt.tipo == "camada.atualizada":
-            await asyncio.to_thread(update_environment_cache, cache, payload)
-        elif evt.tipo.startswith("incidente."):
+        if evt.tipo.startswith("incidente."):
             with store.engine.connect() as conn:
                 current = conn.execute(select(incidentes.c.version, incidentes.c.active).where(incidentes.c.id == str(evt.aggregate_id))).mappings().first()
             if current is None:
