@@ -70,4 +70,4 @@ if (-not $Development) {
     Invoke-TaskCompose -Arguments @('up', '-d', 'db', 'db-replica', 'rabbit1', 'rabbit2', 'rabbit3', 'rabbit-init', 'redis1', 'redis2', 'redis3', 'redis4', 'redis5', 'redis6', 'redis-init')
 }
 Invoke-TaskCompose -Arguments @('up', '-d', '--build')
-Write-Host "Projeto $projectName solicitado. Verifique /health e docs/infra.md; este comando sozinho não comprova os testes de cluster."
+Write-Host "Projeto $projectName solicitado. Verifique /health e README.md; este comando sozinho não comprova os testes de cluster."

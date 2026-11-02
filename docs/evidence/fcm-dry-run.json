@@ -1,8 +1,0 @@
-{
-  "dry_run": true,
-  "provider_accepted": true,
-  "device_receipt_verified": false,
-  "is_demo": true,
-  "event_id": "798cc9a4-a048-4dec-af9e-838de9b4764d",
-  "message": "Validação FCM aceita, sem entrega."
-}

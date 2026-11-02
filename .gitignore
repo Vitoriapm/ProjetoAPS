@@ -39,3 +39,13 @@ mobile/ios/Runner/GoogleService-Info.plist
 *.aab
 *.ipa
 /entregas/*.zip
+
+# Documentos de trabalho e entregas mantidos somente na máquina local
+/docs/
+/entregas/
+/infra/evidence/
+/PLANO_EXECUCAO_ECOPULSE.md
+/*.docx
+/mobile/README.md
+/scripts/iniciar_emulador.ps1
+/scripts/package_source.py

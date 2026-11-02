@@ -1,6 +1,6 @@
 # Interfaces entre UI e lógica mobile
 
-Agente core é dono de lib/models, lib/data, lib/state, lib/services e testes correspondentes. UI é dona de main.dart, app.dart, lib/screens e lib/widgets. Root é dono de pubspec/plataformas/infra/documentação. Não editar pastas de outro agente sem coordenação.
+Os modelos, a persistência, o estado e os serviços ficam em `lib/models`, `lib/data`, `lib/state` e `lib/services`. As telas e os componentes visuais ficam em `lib/screens` e `lib/widgets`; `main.dart` e `app.dart` inicializam o aplicativo.
 
 `models/report.dart`: enum Severity {low,medium,high} com label (Baixa,Média,Alta) e wireValue (baixa,media,alta); enum ReportType {flood,obstruction} com label (Alagamento,Via obstruída) e wireValue (alagamento,obstrucao). Classe Report: id,latitude,longitude,severity,type,description,occurredAt,receivedAt(nullable),isDemo,isPending,positionSource,accuracyM(nullable). Construtor named args; parse/serialize JSON.
 

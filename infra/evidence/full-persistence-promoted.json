@@ -1,9 +1,0 @@
-{
-  "loaded_report_ids_verified_after_promotion": 60,
-  "missing": 0,
-  "old_primary_state": "exited",
-  "old_primary_networks": {},
-  "new_primary_is_in_recovery": false,
-  "new_reports_count": 134,
-  "outbox_pending": 0
-}
