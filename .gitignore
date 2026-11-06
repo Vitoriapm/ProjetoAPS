@@ -40,8 +40,9 @@ mobile/ios/Runner/GoogleService-Info.plist
 *.ipa
 /entregas/*.zip
 
-# Documentos de trabalho e entregas mantidos somente na máquina local
-/docs/
+# Documentos de trabalho e entregas locais; divisão da equipe incluída no Git
+/docs/*
+!/docs/DIVISAO_EQUIPE.md
 /entregas/
 /infra/evidence/
 /PLANO_EXECUCAO_ECOPULSE.md

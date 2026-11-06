@@ -1,5 +1,7 @@
 # Contrato compartilhado EcoPulse
 
+Revisão: **06/11/2026**. Escopo: Alagamentos e Vias.
+
 Backend `/v1` e Flutter compartilham estes formatos. Datas ISO 8601 com fuso UTC. Coordenadas nomeadas na API; GeoJSON usa longitude,latitude.
 
 POST `/v1/sessoes`: `{ "installation_id": "uuid" }` -> `{ "access_token": "...", "installation_id": "uuid" }`. Escritas, push e posição usam Authorization Bearer. DEMO também registra sessão, sem exigir login humano. GET de incidentes/relatos públicos.
@@ -14,4 +16,6 @@ PUT `/v1/dispositivos/push`: `{token:string,platform:"android"|"ios"|"web",latit
 
 WebSocket `/v1/ws?token=...`: cliente envia `{type:"subscribe",latitude,longitude,radius_m:1000}`; servidor confirma `{type:"subscribed",region_ids:[...]}`. Cliente ping recebe pong. Eventos `{type:"incidente.criado"|"incidente.atualizado"|"incidente.expirado",id,version}` são avisos para consultar estado atual. Reconectar sempre faz GET. `/health` informa status,mode e configuração (sem segredos).
 
-Full mode depende PostGIS/RabbitMQ/Redis e três processos API/worker/alerts. Demo mode ECOPULSE_MODE=demo permite SQLite/síncrono exclusivamente para validar UI e domínio; não valida cluster/infra distribuída. Use DATABASE_URL, AMQP_URLS (CSV), REDIS_CLUSTER_URLS (CSV), JWT_SECRET, FCM_CREDENTIALS_FILE, ORS_API_KEY, SHARD_COUNT, DATA_DIR como contrato de ambiente da infraestrutura.
+O modo `full` depende de PostgreSQL/PostGIS, RabbitMQ e Redis. Os processos da aplicação são API, workers de risco e serviço de alertas. Os workers também publicam a outbox; o perfil de apresentação acrescenta um processo independente, `backend.relay.main`, para manter essa publicação enquanto os consumidores de risco estão pausados. O fluxo é API → relato e outbox no PostgreSQL → publicação no RabbitMQ → processamento de risco → alertas → Redis/WebSocket e FCM.
+
+O modo `ECOPULSE_MODE=demo` permite SQLite e processamento local para validar a interface e o domínio; não valida a infraestrutura distribuída. Use `DATABASE_URL`, `AMQP_URLS` (CSV), `REDIS_CLUSTER_URLS` (CSV), `JWT_SECRET`, `FCM_CREDENTIALS_FILE`, `ORS_API_KEY`, `SHARD_COUNT` e `DATA_DIR` como contrato de ambiente da infraestrutura. Segredos e arquivos de configuração privados permanecem fora do Git.
