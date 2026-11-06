@@ -120,6 +120,21 @@ Para verificar a API em execução, a partir da raiz:
 
 Esse teste cria um relato fictício e verifica HTTP, repetição idempotente, conflito, GeoJSON e WebSocket. Testes com respostas simuladas não comprovam disponibilidade de serviços externos; notificações e GPS precisam de verificação no aparelho. Não há build iOS validado por este repositório.
 
+## Demonstração de RabbitMQ e Redis
+
+O perfil de apresentação usa um projeto Docker separado, `ecopulse-apresentacao`, com API em `http://127.0.0.1:8011` e painel RabbitMQ em `http://127.0.0.1:15674`. Prepare o ambiente e abra o painel local:
+
+```powershell
+python -m venv backend/.venv
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+.\scripts\preparar_apresentacao.ps1
+.\backend\.venv\Scripts\python.exe scripts/apresentacao_dsd.py painel
+```
+
+Abra `http://127.0.0.1:8765`. O painel consulta as filas reais e o cache real; as credenciais permanecem no servidor local. Pause os consumidores, envie um relato fictício, observe a mensagem pronta no RabbitMQ e retome o processamento para conferir a chave, a versão e o TTL no Redis. O relay independente continua publicando a outbox enquanto os consumidores de risco estão pausados.
+
+O comando `scripts/apresentacao_dsd.py validar` executa um ensaio completo com um relato simulado e grava somente resultados locais em `.runtime/`. No celular, configure o IP do computador com a porta 8011 para usar esse ambiente. Os comandos do painel operam exclusivamente o projeto `ecopulse-apresentacao` e preservam seus volumes.
+
 ## Arquivos locais
 
 O `.gitignore` exclui `.env`, credenciais, bancos, logs, caches, compilações, APKs e registros locais de execução. Mantenha esses arquivos no ambiente de desenvolvimento. Para baixar os fontes publicados, use `git clone` ou **Code → Download ZIP** no GitHub.

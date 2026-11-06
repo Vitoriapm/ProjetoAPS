@@ -1,0 +1,72 @@
+# Use with compose.yaml + compose.cluster.yaml and project ecopulse-apresentacao.
+services:
+  nginx:
+    ports: !override ["0.0.0.0:8011:8000"]
+    mem_limit: 64m
+  rabbit1:
+    ports: !override ["127.0.0.1:15674:15672"]
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+S 2:2 +SDcpu 1 +SDio 1 +A 8"
+      RABBITMQ_CTL_ERL_ARGS: "+S 1:1 +SDcpu 1 +SDio 1"
+    mem_limit: 512m
+    healthcheck:
+      start_period: 90s
+      timeout: 15s
+      retries: 40
+  rabbit2:
+    depends_on: !override
+      rabbit1: {condition: service_started}
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+S 2:2 +SDcpu 1 +SDio 1 +A 8"
+      RABBITMQ_CTL_ERL_ARGS: "+S 1:1 +SDcpu 1 +SDio 1"
+    mem_limit: 512m
+    healthcheck:
+      start_period: 90s
+      timeout: 15s
+      retries: 40
+  rabbit3:
+    depends_on: !override
+      rabbit1: {condition: service_started}
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+S 2:2 +SDcpu 1 +SDio 1 +A 8"
+      RABBITMQ_CTL_ERL_ARGS: "+S 1:1 +SDcpu 1 +SDio 1"
+    mem_limit: 512m
+    healthcheck:
+      start_period: 90s
+      timeout: 15s
+      retries: 40
+  rabbit-init:
+    environment:
+      RABBITMQ_CTL_ERL_ARGS: "+S 1:1 +SDcpu 1 +SDio 1"
+  db:
+    mem_limit: 256m
+  db-replica:
+    mem_limit: 256m
+  api:
+    mem_limit: 256m
+  api2:
+    mem_limit: 256m
+  worker:
+    mem_limit: 192m
+  worker2:
+    mem_limit: 192m
+  alerts:
+    mem_limit: 256m
+  redis1:
+    mem_limit: 128m
+  redis2:
+    mem_limit: 128m
+  redis3:
+    mem_limit: 128m
+  redis4:
+    mem_limit: 128m
+  redis5:
+    mem_limit: 128m
+  redis6:
+    mem_limit: 128m
+  relay:
+    extends:
+      file: compose.cluster.yaml
+      service: worker2
+    command: [python, -m, backend.relay.main]
+    mem_limit: 192m

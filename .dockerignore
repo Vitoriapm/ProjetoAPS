@@ -1,5 +1,6 @@
 .git
 .env
+.env.*
 .runtime
 secrets
 backend/.venv
@@ -14,4 +15,8 @@ mobile
 docs
 infra/evidence
 *.docx
+entregas
+*.apk
+*.aab
+*.ipa
 *.log
