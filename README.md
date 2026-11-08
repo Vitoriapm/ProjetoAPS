@@ -2,7 +2,7 @@
 
 Aplicativo acadêmico para registrar alagamentos e vias obstruídas em Ribeirão Preto. O cliente Flutter oferece mapa, relatos com GPS ou posição manual, fila offline, sincronização, avisos de proximidade e consulta de rotas.
 
-Documentação revisada em **06/11/2026**. A versão do aplicativo é **1.0.0+5**. A [identificação dos integrantes, a divisão de responsabilidades e a carga horária da equipe](docs/DIVISAO_EQUIPE.md) acompanham esta versão.
+Documentação revisada em **07/11/2026**. A versão do aplicativo é **1.0.0+5**. A [identificação dos integrantes, a divisão de responsabilidades e a carga horária da equipe](docs/DIVISAO_EQUIPE.md) acompanham esta versão. A carga horária consolidada é de **231 horas-pessoa**: **Augusto 79 h**, **Alessandro 77 h** e **Vitória 75 h**.
 
 ## Estrutura
 
